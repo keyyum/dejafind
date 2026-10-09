@@ -1,0 +1,3 @@
+lint  = npm run lint
+tsc   = npm run typecheck
+build = npm run build

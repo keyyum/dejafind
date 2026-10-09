@@ -39,3 +39,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# dejafind: local data, never commit user files or indexes
+/data/
+!/data/samples/.gitkeep
+*.sqlite
+*.sqlite-*
+*.db
+/models/
+/.agents/

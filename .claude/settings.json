@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(npm ci)",
+      "Bash(npm install *)",
+      "Bash(npm test*)",
+      "Bash(npx *)",
+      "Bash(node *)",
+      "Bash(ollama *)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git fetch*)",
+      "Bash(git branch*)",
+      "Bash(git worktree *)",
+      "Bash(ls *)",
+      "Bash(cat *)",
+      "Bash(sqlite3 *)",
+      "Bash(curl http://localhost:11434/*)"
+    ],
+    "deny": [
+      "Read(./.env*)",
+      "Bash(curl https://api.openai.com/*)",
+      "Bash(curl https://api.anthropic.com/*)"
+    ]
+  }
+}

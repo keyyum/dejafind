@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DéjàFind
 
-## Getting Started
+**Your files, understood. No internet needed.**
 
-First, run the development server:
+DéjàFind watches your Screenshots, Downloads, and a drop folder. Every new photo, screenshot, or PDF is read, titled, summarized, tagged by subject, and placed on a deadline timeline, by itself, on your own laptop. Ask "when's my bio quiz?" and it answers from your own files and shows the one it came from.
+
+Built for students first. Works for anyone with files.
+
+AppBuildersPH Hackathon 2026 entry. Theme: Local AI.
+
+## Why local AI
+
+A website cannot watch your folders; it has to ask you to upload. Only software running on your machine can organize files as they arrive. It works with no signal and no data, costs nothing per file, and your class photos and personal screenshots never leave the device.
+
+## Run it
+
+Requires macOS or Linux, Node 20+, and [Ollama](https://ollama.com).
 
 ```bash
+ollama pull qwen2.5vl:3b
+ollama pull qwen3:4b
+ollama pull nomic-embed-text
+npm ci
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3100. Drop a file into `data/watch/` or take a screenshot. Turn Wi-Fi off; it keeps working.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## What runs locally, what needs internet
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Runs locally:** everything in the product. File watching, reading images and PDFs, summarizing, subject tagging, date extraction, search, question answering, and the quiz all run on the laptop through Ollama.
+- **Needs internet:** only the one-time model download through `ollama pull`. Nothing at runtime.
 
-## Learn More
+## Disclosures
 
-To learn more about Next.js, take a look at the following resources:
+Keep this section current. Every model, framework, and library is listed the moment it is added.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**Models (all run locally via Ollama)**
+- `qwen2.5vl:3b` (Qwen2.5-VL 3B, Apache 2.0): reads images, returns text, title, summary, tags, dates.
+- `qwen3:4b` (Qwen3 4B, Apache 2.0): text files, structured extraction, answers, quiz generation.
+- `nomic-embed-text` (Nomic Embed v1.5, Apache 2.0): embeddings for semantic search.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**Frameworks and libraries**
+- Next.js 16, React 19, TypeScript, Tailwind CSS 4
+- Ollama (local model server) and the `ollama` JS client
+- `chokidar` (folder watching), `better-sqlite3` + `sqlite-vec` + SQLite FTS5 (storage and search), `pdf-parse` (PDF text), `chrono-node` (date cross-check)
 
-## Deploy on Vercel
+**Cloud services and APIs:** none in the product.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+**Existing code and assets:** none. Scaffolded with `create-next-app` on Oct 10 2026 during the hackathon. Sample files in `data/samples/` are synthetic.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**AI development tools:** Claude Code (Anthropic) was used as a coding assistant. All code was written during the hackathon.
+
+## Team
+
+See the submission form. Members are listed exactly as on the official AppBuildersPH participant list.
