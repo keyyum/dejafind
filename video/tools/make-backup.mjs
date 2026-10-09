@@ -9,7 +9,7 @@ const CAPS = {
   "b1-library": ["The Library. Top right: <b>On this laptop · nothing sent.</b>"],
   "b2-schedule": ["Screenshot the class schedule. <b>Use it</b>: six subjects."],
   "b3-watch": ["A GC screenshot lands, read and <b>filed under Biology</b>.", "<b>Oct 17</b> lifts into Coming up."],
-  "b4-snap": ["Snap a whiteboard with the camera.", "It lands flat, <b>filed by subject</b>."],
+  "b4-snap": ["Snap a whiteboard with the camera.", "It lands, <b>filed under Biology</b>."],
   "b5-find": ["Ask: <b>when’s my bio quiz?</b>", "The answer <b>cites the screenshot</b> it came from.", "The Document view shows <b>what it read</b>."],
   "b6-drop": ["Drop one more file. <b>Still read on this laptop.</b>"],
   "b-status": ["<b>0 requests out.</b> Three local models."],

@@ -31,7 +31,7 @@ Everything runs on one MacBook (Apple M4, 16 GB) through Ollama on localhost. Th
 
 **Why it has to be local:** a website can't watch your folders, it has to ask you to upload. Only software on your machine can file things as they arrive. It also works with no signal, costs nothing per file, and keeps class photos and personal chats on the device.
 
-**Measured on this machine (Apple M4, 16 GB, one production server, nothing else using Ollama):** 15 s per document read on average over 10 documents (median 11 s, range 9 to 30 s, the PDF slowest), about 12 s for a cited answer, about 33 s to write a five-question quiz, 0 outbound requests. Timings come from the app's own `/api/status`; the full rerunnable table is in the README. We have no public benchmark and quote none.
+**Measured on this machine (Apple M4, 16 GB, one production server, nothing else using Ollama):** 11 s per document read on average over 10 documents (median 7 s, range 5 to 23 s), about 7 s for a cited answer, about 25 s to write a five-question quiz, 0 outbound requests. Timings come from the app's own `/api/status`; the full rerunnable table is in the README. We have no public benchmark and quote none.
 
 ## What was built during the hackathon
 
