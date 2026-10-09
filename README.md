@@ -36,7 +36,19 @@ npm ci
 npm run dev
 ```
 
-Open http://localhost:3100. Drop a file into `data/watch/` or take a screenshot. Turn Wi-Fi off; it keeps working.
+Open http://localhost:3100. Turn Wi-Fi off; it keeps working.
+
+### Try it in two minutes
+
+The Library starts empty because the app only reads files it sees arrive. Thirteen synthetic sample files are in `data/samples/demo/` (a timetable, group-chat screenshots, slide photos, a whiteboard, a handout, a PDF, a receipt; see its README for what each one should produce). Load them one of three ways:
+
+1. In the empty Library, click **Load the sample files**.
+2. Or run `node scripts/seed.mjs --base http://localhost:3100` in a second terminal; it loads them in the demo order and prints what was read.
+3. Or copy any of them into `data/watch/`, one at a time, and watch the tile land.
+
+Then: click **Use it** on the schedule card, type `when's my bio quiz` in the search bar, open **Biology** and press **Quiz me**. Click the status dot top right to see the three models and the outbound request counter at 0. The first read after launch takes about 40 s while the vision model loads; after that, 8 to 20 s per file.
+
+Tested on macOS (Apple silicon). Linux works too; the Lens tap (word boxes) uses Apple Vision and simply stays off elsewhere.
 
 ## What runs locally, what needs internet
 
@@ -83,7 +95,7 @@ Keep this section current. Every model, framework, and library is listed the mom
 
 **Cloud services and APIs:** none in the product. Next.js's own anonymous build telemetry is disabled on the demo machine with `npx next telemetry disable` so the outbound-request counter reads zero.
 
-**Existing code and assets:** none. Scaffolded with `create-next-app` on Oct 10 2026 during the hackathon. Sample files in `data/samples/` are synthetic: most are rendered from HTML we wrote; three photos (`bio-mitosis-slide.jpg`, `whiteboard-photosynthesis.jpg`, `calc-longquiz-handout.jpg`) were generated with OpenAI Codex's image tool during the hackathon from text we wrote, so the demo has realistic camera photos without using anyone's real documents.
+**Existing code and assets:** none. Scaffolded with `create-next-app` on Oct 10 2026 during the hackathon. Sample files in `data/samples/` are synthetic: most are rendered from HTML we wrote; five photos (`bio-mitosis-slide.jpg`, `whiteboard-photosynthesis.jpg`, `calc-longquiz-handout.jpg`, `physics-kinematics-photo.jpg`, `calc-limits-photo.jpg`) were generated with OpenAI Codex's image tool during the hackathon from text we wrote, so the demo has realistic camera photos without using anyone's real documents.
 
 **AI development tools:** Claude Code (Anthropic) was used as a coding assistant. All code was written during the hackathon. The logo mark is a hand-drawn SVG based on a concept image generated with OpenAI Codex during the hackathon; no generated raster ships as a logo.
 
