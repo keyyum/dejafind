@@ -1,7 +1,13 @@
 "use client";
+/* eslint-disable @next/next/no-img-element -- local thumbnails at their real size */
 
+import Link from "next/link";
+import { XIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import type { DocumentSummary } from "@/lib/api-types";
+import { getDocuments } from "@/lib/client/api";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 import { useImport } from "./import-drop";
 
 const DEVICE_KEY = "dejafind:snap-device";
@@ -26,14 +32,78 @@ function pickDefault(devices: MediaDeviceInfo[]): string | null {
   return devices.find((d) => /iphone|continuity/i.test(d.label))?.deviceId ?? null;
 }
 
-function SnapCamera({ onClose }: { onClose: () => void }) {
+/** Short camera names for the small picker: "iPhone Camera", "FaceTime HD Camera". */
+function shortLabel(d: MediaDeviceInfo, i: number): string {
+  return (d.label || `Camera ${i + 1}`).replace(/\s*\([0-9a-f]{4}:[0-9a-f]{4}\)$/i, "");
+}
+
+/** The six most recent filed documents: "these are already in". */
+function RecentStrip({ onOpen }: { onOpen: () => void }) {
+  const [docs, setDocs] = useState<DocumentSummary[] | null>(null);
+  useEffect(() => {
+    let live = true;
+    void getDocuments()
+      .then((r) => {
+        if (!live) return;
+        setDocs(
+          r.groups
+            .flatMap((g) => g.documents)
+            .filter((d) => d.status === "done" && d.thumbUrl)
+            .slice(0, 6),
+        );
+      })
+      .catch(() => live && setDocs([]));
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  if (docs && docs.length === 0) {
+    return <p className="px-6 py-5 text-[15px] text-white/60">Nothing filed yet. Your first photo starts the library.</p>;
+  }
+  return (
+    <div className="flex flex-col gap-3 px-6 pt-4 pb-5">
+      <p className="text-[15px] text-white/60">Already in DéjàFind</p>
+      <ul className="grid grid-cols-6 gap-3">
+        {(docs ?? Array.from({ length: 6 }, () => null)).map((d, i) => (
+          <li key={d?.id ?? i} className="min-w-0">
+            {d ? (
+              <Link
+                href={`/d/${d.id}`}
+                onClick={onOpen}
+                title={d.title}
+                className="group block rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#1f1f1d]"
+              >
+                <span className="block aspect-[4/3] overflow-hidden rounded-lg bg-white/10">
+                  <img
+                    src={d.thumbUrl ?? undefined}
+                    alt={d.title}
+                    width={d.width}
+                    height={d.height}
+                    className="size-full object-cover object-top transition-opacity group-hover:opacity-80"
+                  />
+                </span>
+                <span className="mt-1.5 block truncate text-[14px] text-white/75">{d.title}</span>
+              </Link>
+            ) : (
+              <span className="block aspect-[4/3] rounded-lg bg-white/10" />
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function CaptureSheet({ onClose }: { onClose: () => void }) {
   const send = useImport();
   const video = useRef<HTMLVideoElement>(null);
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const [deviceId, setDeviceId] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
-  const [busy, setBusy] = useState(false);
+  const [flash, setFlash] = useState(false);
 
   useEffect(() => {
     let stream: MediaStream | null = null;
@@ -61,14 +131,15 @@ function SnapCamera({ onClose }: { onClose: () => void }) {
         if (!deviceId) {
           const preferred = pickDefault(all);
           const current = s.getVideoTracks()[0]?.getSettings().deviceId;
+          setSelected(preferred ?? current ?? "");
           if (preferred && preferred !== current) setDeviceId(preferred);
         }
       })
       .catch((e: unknown) =>
         setError(
           e instanceof DOMException && e.name === "NotAllowedError"
-            ? "Camera access is off. Allow it in the browser's site settings, then try again."
-            : "No camera found. Connect your iPhone or a webcam.",
+            ? "Camera access is off. Allow it in the browser's site settings, then open Snap again."
+            : "No camera found. Connect your iPhone or a webcam, then open Snap again.",
         ),
       );
     return () => {
@@ -79,8 +150,8 @@ function SnapCamera({ onClose }: { onClose: () => void }) {
 
   const capture = () => {
     const v = video.current;
-    if (!v || !v.videoWidth) return;
-    setBusy(true);
+    if (!v || !v.videoWidth || flash) return;
+    setFlash(true);
     const canvas = document.createElement("canvas");
     canvas.width = v.videoWidth;
     canvas.height = v.videoHeight;
@@ -88,12 +159,15 @@ function SnapCamera({ onClose }: { onClose: () => void }) {
     canvas.toBlob(
       (blob) => {
         if (!blob) {
-          setBusy(false);
+          setFlash(false);
           return;
         }
         const file = new File([blob], `snap-${new Date().toISOString().replace(/[:.]/g, "-")}.jpg`, { type: "image/jpeg" });
-        onClose();
-        void send([file], "snap");
+        // Let the flash read, then close; the Library plays the landing when the capture is queued.
+        setTimeout(() => {
+          onClose();
+          void send([file], "snap");
+        }, 180);
       },
       "image/jpeg",
       0.92,
@@ -101,57 +175,89 @@ function SnapCamera({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-foreground">
-        {/* Muted, inline, no captions: a live camera preview. */}
+    <div className="flex flex-col bg-[#1f1f1d] text-white">
+      <div className="relative aspect-[4/3] w-full overflow-hidden bg-black sm:aspect-[16/10]">
         <video
           ref={video}
           autoPlay
           playsInline
           muted
           onLoadedData={() => setReady(true)}
-          className="size-full object-contain"
+          className={cn("size-full object-cover transition-opacity duration-300", ready ? "opacity-100" : "opacity-0")}
         />
-        {error && (
-          <p className="absolute inset-0 flex items-center justify-center p-8 text-center text-[17px] text-background/80">{error}</p>
+        {error && <p className="absolute inset-0 flex items-center justify-center p-10 text-center text-[17px] text-white/80">{error}</p>}
+        {!ready && !error && (
+          <p className="absolute inset-0 flex items-center justify-center text-[17px] text-white/60" role="status">
+            Starting camera…
+          </p>
         )}
-      </div>
-      <div className="flex flex-wrap items-center gap-4">
-        {devices.length > 1 && (
-          <>
-            <label htmlFor="snap-device" className="text-[15px] text-muted-foreground">Camera</label>
-            <select
-              id="snap-device"
-              value={deviceId ?? ""}
-              onChange={(e) => {
-                setReady(false);
-                setDeviceId(e.target.value);
-                saveDevice(e.target.value);
-              }}
-              className="min-w-0 max-w-[280px] rounded-md border border-border bg-white px-2 py-1 text-[15px] outline-none focus-visible:ring-2 focus-visible:ring-ring"
+
+        {/* Top bar over the viewfinder. */}
+        <div className="absolute inset-x-0 top-0 flex items-start justify-between gap-4 bg-gradient-to-b from-black/55 to-transparent p-4">
+          <div className="flex flex-col pt-1.5 pl-1">
+            <DialogTitle className="text-[17px] font-semibold text-white">Snap a page</DialogTitle>
+            <DialogDescription className="text-[15px] text-white/70">Hold the slide or handout up to the camera.</DialogDescription>
+          </div>
+          <div className="flex items-center gap-2">
+            {devices.length > 0 && (
+              <>
+                <label htmlFor="snap-device" className="sr-only">Camera</label>
+                <select
+                  id="snap-device"
+                  value={selected}
+                  onChange={(e) => {
+                    setReady(false);
+                    setSelected(e.target.value);
+                    setDeviceId(e.target.value);
+                    saveDevice(e.target.value);
+                  }}
+                  className="h-10 max-w-[200px] cursor-pointer truncate rounded-full border-0 bg-black/45 px-3.5 text-[14px] text-white backdrop-blur outline-none hover:bg-black/60 focus-visible:ring-2 focus-visible:ring-white"
+                >
+                  {devices.map((d, i) => (
+                    <option key={d.deviceId} value={d.deviceId} className="text-foreground">
+                      {shortLabel(d, i)}
+                    </option>
+                  ))}
+                </select>
+              </>
+            )}
+            <DialogClose
+              aria-label="Close"
+              className="inline-flex size-10 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur outline-none hover:bg-black/60 focus-visible:ring-2 focus-visible:ring-white"
             >
-              {!deviceId && <option value="">Default camera</option>}
-              {devices.map((d, i) => (
-                <option key={d.deviceId} value={d.deviceId}>{d.label || `Camera ${i + 1}`}</option>
-              ))}
-            </select>
-          </>
-        )}
-        <button
-          type="button"
-          autoFocus
-          disabled={!ready || busy}
-          onClick={capture}
-          className="ml-auto inline-flex h-12 items-center rounded-full bg-foreground px-7 text-[17px] font-semibold text-background outline-none hover:bg-foreground/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-40"
-        >
-          Take photo
-        </button>
+              <XIcon className="size-5" aria-hidden />
+            </DialogClose>
+          </div>
+        </div>
+
+        {/* Shutter, bottom centre. */}
+        <div className="absolute inset-x-0 bottom-0 flex justify-center bg-gradient-to-t from-black/45 to-transparent pt-10 pb-6">
+          <button
+            type="button"
+            autoFocus
+            aria-label="Take photo"
+            disabled={!ready}
+            onClick={capture}
+            className="group flex size-[78px] items-center justify-center rounded-full border-4 border-white outline-none focus-visible:ring-4 focus-visible:ring-white/50 disabled:opacity-40"
+          >
+            <span className="size-[62px] rounded-full bg-white transition-transform duration-150 group-hover:scale-95 group-active:scale-90" />
+          </button>
+        </div>
+
+        <div
+          aria-hidden
+          className={cn(
+            "pointer-events-none absolute inset-0 bg-white transition-opacity",
+            flash ? "opacity-90 duration-75" : "opacity-0 duration-300",
+          )}
+        />
       </div>
+      <RecentStrip onOpen={onClose} />
     </div>
   );
 }
 
-/** "Snap": capture a page from the webcam or the iPhone and file it like any other capture. */
+/** "Snap": a capture sheet that only takes a photo, then files it like any other capture. */
 export function SnapButton() {
   const [open, setOpen] = useState(false);
   return (
@@ -164,14 +270,11 @@ export function SnapButton() {
         Snap
       </button>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="gap-5 rounded-2xl p-6 sm:max-w-[760px]">
-          <div className="flex flex-col gap-1.5 pr-8">
-            <DialogTitle className="text-[22px] font-semibold">Snap a page</DialogTitle>
-            <DialogDescription className="text-[16px]">
-              Hold the slide or handout up to the camera. It gets read and filed on this laptop.
-            </DialogDescription>
-          </div>
-          {open && <SnapCamera onClose={() => setOpen(false)} />}
+        <DialogContent
+          showCloseButton={false}
+          className="gap-0 overflow-hidden overscroll-contain rounded-3xl bg-[#1f1f1d] p-0 ring-0 shadow-[0_24px_80px_rgb(0_0_0/0.45)] sm:max-w-[min(960px,calc(100vw-4rem))]"
+        >
+          {open && <CaptureSheet onClose={() => setOpen(false)} />}
         </DialogContent>
       </Dialog>
     </>

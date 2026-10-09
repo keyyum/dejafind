@@ -22,6 +22,8 @@ export function Landing({ fly, children }: { fly: boolean; children: ReactNode }
       void animate(el, { opacity: [0, 1] }, { duration: 0.3 });
       return;
     }
+    // Measure the slot, not wherever an earlier run of this effect left the tile.
+    el.style.transform = "none";
     const r = el.getBoundingClientRect();
     const s0 = Math.min(1, PREVIEW_WIDTH / r.width);
     const cx = window.innerWidth - PREVIEW_INSET - (r.width * s0) / 2;
