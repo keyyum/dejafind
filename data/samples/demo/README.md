@@ -1,11 +1,19 @@
 # Demo samples
 
-Four synthetic files for the live demo, one per ingestion path the pipeline
-has to show on stage: a born-digital PDF, a camera photo that needs the
-cleanup step, a non-academic receipt, and a non-English page. Nothing here
-is a real person's document — names, branches, and transaction numbers are
-all made up (`Juan Dela Cruz` is the standard placeholder name used on PH
+Eleven synthetic files for the live demo, built in two batches, covering
+every ingestion path the pipeline has to show on stage: a born-digital PDF,
+camera photos that need the cleanup step, GC screenshots, a timetable, slide
+decks, a whiteboard, a printed handout, and a non-academic receipt. Nothing
+here is a real person's document — names, branches, and transaction numbers
+are all made up (`Juan Dela Cruz` is the standard placeholder name used on PH
 forms, not a real person).
+
+Batch 1 (four files, below) has full measured-run detail per file, including
+two real findings (the receipt's non-deterministic subject, and the quad
+bug that was live when that batch was built — since fixed, see Batch 2).
+Batch 2 (seven files, after "Why these four") was built to save time budget,
+so most of its files were not individually round-tripped through the live
+pipeline; the one that was (the whiteboard) is called out below.
 
 All four were verified against the real pipeline on this machine
 (`NEXT_PUBLIC_DEJAFIND_MOCK` unset, models already pulled: `qwen2.5vl:3b`,
@@ -128,3 +136,68 @@ date cross-check.
   behind it, not just mock data.
 - **Sanaysay** — non-English content and a cross-language date, both real
   technical claims worth demoing live rather than only in English samples.
+
+## Batch 2
+
+Requested after the quad-detection bug above was fixed on `main` (`67be46a`,
+`await getCv()` switched to `require`). Same style conventions as batch 1:
+`.png` for anything that's a genuine screenshot (chat, portal page, a flat
+slide export), `.jpg` for anything that's a camera photo of a physical
+object (routes through `isPhoto()`/cleanup). Not individually pipeline-tested
+except where noted, per the orchestrator's budget call — these are built to
+the same visual and content standards as batch 1, just not all re-verified
+against `documents`/`dates` this time.
+
+### `gc-biology-quiz-oct17.png`
+
+Light Messenger-style GC screenshot, white background, same "BSCS 2-A"
+section as `gc-bio-quiz.png` (core's original, now also light-themed) —
+Ma'am Reyes moves the Biology quiz to October 17, adds a room/time follow-up
+exchange. Expected: subject Biology, date 2026-10-17.
+
+### `gc-calculus-longquiz-oct19.png`
+
+Second GC, same group, different teacher (Sir Mendoza) announcing a
+Calculus long quiz on **Monday, October 19, 2026** (verified that's the
+correct weekday), covering limits and continuity, no calculators. Expected:
+subject Calculus/Math, date 2026-10-19.
+
+### `timetable-bscs-2b.png`
+
+A student-portal-style class schedule for **BSCS 2-B** — the exact section
+named in `docs/UI.md`'s schedule-confirmation card ("This looks like a class
+schedule for BSCS 2-B. Is it yours?"). Six subjects with days, times, and
+rooms: Biology 101, Calculus 1, Physics 101, Filipino 1, PE 2, NSTP 1.
+Expected: doc_type `schedule`, `schedule_section` "BSCS 2-B", six schedule
+entries extracted by `src/server/subjects.ts`'s timetable parser.
+
+### `calc-limits-slide.png` / `physics-kinematics-slide.png`
+
+Two flat, straight-on 1600×900 slide exports (no perspective transform —
+"straight" per the ask), styled like the other lecture slides but without
+the desk/angle treatment. Calculus: "Limits and Continuity" with a small
+SVG graph showing a removable discontinuity. Physics: "Kinematics: Motion in
+One Dimension" with the `v = v₀ + at` / `x = x₀ + v₀t + ½at²` equations.
+Expected subjects: Calculus, Physics. No dates (pure lecture content).
+
+### `whiteboard-photosynthesis.jpg`
+
+A whiteboard photo (handwriting-style font, marker colors, visible board
+bezel) with the photosynthesis equation, three bullet notes, and a corner
+reminder "remember for quiz: Oct 17!" — ties back to the Biology quiz date
+running through the other samples. **This one was round-tripped through the
+live pipeline** to confirm the quad-detection fix: `clean.ts` logged no
+error this time, and `data/derived/<id>-clean.jpg` came back flat and
+axis-aligned (the perspective is gone), unlike `bio-mitosis-slide.jpg` in
+batch 1. Measured: title "Photosynthesis", subject Biology, doc_type came
+back `handout` rather than `whiteboard` (a model labeling quirk, not a
+sample issue), date 2026-10-17 at confidence 1.0, status `auto`.
+
+### `calc-longquiz-handout.jpg`
+
+A printed handout (Calculus, "Long Quiz 2 Coverage", Sir Mendoza, due
+Monday, October 19, 2026) photographed near-square-on — the same subject
+and date as `gc-calculus-longquiz-oct19.png`, so a search for the long quiz
+should surface both documents. Companion to batch 1's `physics-lab-handout.pdf`:
+same kind of content, but through the photo/vision-OCR route instead of the
+PDF/text route. Expected: subject Calculus, date 2026-10-19.
