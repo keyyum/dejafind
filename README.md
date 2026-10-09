@@ -42,6 +42,8 @@ Keep this section current. Every model, framework, and library is listed the mom
 
 **Frameworks and libraries**
 - Next.js 16, React 19, TypeScript, Tailwind CSS 4
+- UI: shadcn/ui (Base UI flavor) with the tweakcn "claude" theme preset, Magic UI `animated-list` (MIT), Kibo UI `status` (MIT), `motion`, `lucide-react`, `sonner`
+- Fonts via Google Fonts: Fraunces, Figtree, JetBrains Mono (OFL)
 - Ollama (local model server) and the `ollama` JS client
 - `chokidar` (folder watching), `better-sqlite3` + `sqlite-vec` + SQLite FTS5 (storage and search), `pdf-parse` (PDF text), `chrono-node` (date cross-check)
 

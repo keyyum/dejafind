@@ -22,7 +22,7 @@ dates(id, file_id, iso_date, label, confidence, source_span, status[auto|review]
 | 2 | Reader: image to vision model, PDF to text, text to text model; returns `{text,title,summary,tags,subject,dates[]}` as JSON | core | 01:30 | sample slide yields correct JSON |
 | 3 | Dates: chrono cross-check anchored to capture time; agree = auto, disagree = review | core | 00:30 | "quiz moved to Friday" resolves to the right ISO date |
 | 4 | Index: chunk, embed, FTS + vec insert | core | 00:45 | search returns the right file |
-| 5 | UI: Subjects home (per subject: recent captures with title and summary, next deadline, quiz button), Timeline tab, Ask bar | ui | 02:00 | all views render live data |
+| 5 | UI per `docs/UI.md`: top bar with Ask and status pill, Subjects home, Subject view, Timeline, Quiz screen, ingest toast | ui | 02:30 | all screens render against mock, then live data |
 | 6 | Ask: hybrid retrieval, answer with file id citation, refuse below threshold, show source file | core | 01:00 | "when's my bio quiz" answers with photo |
 | 7 | Quiz: five MCQs from a subject, graded, source shown | core | 00:45 | "quiz me on Biology" yields 5 answerable questions |
 | 8 | Network panel: a visible indicator that the server made zero outbound requests during a session | ui | 00:30 | counter stays at 0 while indexing |
