@@ -1,6 +1,6 @@
 # Demo samples
 
-**05:20 update (orchestrator):** `bio-mitosis-slide.jpg`, `whiteboard-photosynthesis.jpg`, and `calc-longquiz-handout.jpg` are now photorealistic images generated with OpenAI Codex's image tool from the same text as before (disclosed in the root README). Verified through the live pipeline on main at 05:19: mitosis → Biology, slide, warped flat, no date; whiteboard → Biology, Oct 17 auto; calc handout → Calculus, Oct 19 auto. The earlier HTML-rendered versions are kept out of the repo.
+**05:20 update (orchestrator):** `bio-mitosis-slide.jpg`, `whiteboard-photosynthesis.jpg`, and `calc-longquiz-handout.jpg` are now photorealistic images generated with OpenAI Codex's image tool from the same text as before (disclosed in the root README). Verified through the live pipeline on main at 05:19: mitosis → Biology, slide, warped flat, no date; whiteboard → Biology, Oct 17 auto; calc handout → Calculus, Oct 19 auto. The earlier HTML-rendered versions are kept out of the repo. Two more generated camera photos were added as extras: `physics-kinematics-photo.jpg` (Physics, slide, no date) and `calc-limits-photo.jpg` (Calculus, slide, no date), both verified through the live pipeline; the stage script does not use them.
 
 Eleven synthetic files for the live demo, built in two batches, covering
 every ingestion path the pipeline has to show on stage: a born-digital PDF,
