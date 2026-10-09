@@ -1,24 +1,29 @@
 # DéjàFind, the Offline Study Brain
 
-**One line.** It watches your files, organizes them, and answers your questions. No upload, no internet.
+**One line.** Snap your slides, screenshot your GC, drop your LMS files. DéjàFind files them by subject, puts every deadline on one timeline, and quizzes you from your own notes. No upload, no internet.
+
+**Hook.** You already take the photos. Nobody ever studies from them. We made the photos study you back.
 
 **Hackathon.** AppBuildersPH Hackathon 2026, theme Local AI. Submission 10:00 AM Oct 10 2026 Manila. Judging: 25% problem and usefulness, 25% local-AI implementation, 20% technical execution, 15% innovation, 15% product and demo.
 
 ## Who it's for
 
-Built for students first, works for anyone with files. The student: a camera roll full of slide and whiteboard photos never opened again, deadlines scattered across the LMS, slides, and Messenger group chats. Students already photograph slides; the product fixes what happens after.
+Students. Only students. Not "anyone with files"; a general file finder is a search box with a story bolted on. The student: a camera roll full of slide and whiteboard photos never opened again, deadlines scattered across the LMS, slides, and Messenger group chats. Students already photograph slides; the product fixes what happens after.
 
-## Core three for the demo
+## Inputs
 
-1. **Snap, file, timeline.** No upload button. The app watches Screenshots, Downloads, and a drop folder. A new photo, screenshot, or PDF is read, titled, summarized, tagged by subject, and saved by itself. Every date found lands on one timeline with the source file beside it.
-2. **Ask your files.** "When's my bio quiz?" Answers come only from your own files, cite the file, and show it. If nothing matches, it says "not in your files".
-3. **Summary on every file.** Title, one-line summary, tags, for every file, acad or not. IMG_4821 becomes "Bio lecture 5, cell division, quiz Oct 17". Tags decide what is a school subject and what is a receipt or personal.
+Class materials only: photos of slides and whiteboards, handouts, GC screenshots, PDFs and slide decks from the LMS. No upload button. The app watches Screenshots, Downloads, and a drop folder. Anything that is not class material is tagged Other and left alone. That is not a feature and is not mentioned on stage.
 
-**Stretch, only if the core is working by 05:00.** Quiz: "quiz me on Biology", five questions generated from your own files, graded, with the source shown.
+## Core four for the demo
+
+1. **Snap, file, timeline.** A new photo, screenshot, or PDF is read, titled, summarized, and filed under its subject by itself. Every date found lands on one timeline with the source beside it. The home screen is Subjects, not files; open Biology and you see this week's captures, the next deadline, and a "quiz me" button.
+2. **Ask your notes.** "When's my bio quiz?" "What did sir say about mitosis?" Answers come only from your own captures, scoped to a subject or all, cite the capture, and show it. If nothing matches, it says "not in your notes".
+3. **Summary on every capture.** Title, one-line summary, tags. IMG_4821 becomes "Bio lecture 5, cell division, quiz Oct 17".
+4. **Quiz me.** "Quiz me on Biology": five questions generated from your own captures, graded, with the source shown. This is core. It is the first thing cut if time runs out, but a study brain that does not quiz you is a folder.
 
 ## Not in scope for the hackathon
 
-Reviewer sheets, flashcards, calendar sync, reminders, phone app, sync or backup, share sheet, camera-roll import, auto-written lecture notes, social features, streaks, grade prediction.
+Reviewer sheets, flashcards, calendar sync, reminders, phone app, sync or backup, share sheet, camera-roll import, auto-written lecture notes, social features, streaks, grade prediction, non-academic files.
 
 ## Why local AI
 
@@ -32,11 +37,11 @@ On stage say "the only one we found that does all of this offline", never "the o
 
 ## Not a chatbot
 
-A chatbot waits for you to type. DéjàFind works even if you never type anything. The main screen is Files, Subjects, Timeline, and an Ask bar. Asking is the bonus.
+A chatbot waits for you to type. DéjàFind works even if you never type anything. The main screen is Subjects, with Timeline and Quiz tabs and an Ask bar. Asking is the bonus.
 
 ## Non-acad files
 
-Same engine, minus the quiz. Find by meaning ("the GCash I sent to Ate Jen last week"), ask ("how much did I pay Shopee last month"), dates (bills, tickets, bookings land on the same timeline), amounts (receipts can be totaled). Mention in one line in Q&A, do not demo.
+Out of scope. If a judge asks "could it do receipts", the answer is "the engine could, we built it for class materials and we're staying there".
 
 ## Platform
 

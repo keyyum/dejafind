@@ -22,10 +22,12 @@ dates(id, file_id, iso_date, label, confidence, source_span, status[auto|review]
 | 2 | Reader: image to vision model, PDF to text, text to text model; returns `{text,title,summary,tags,subject,dates[]}` as JSON | core | 01:30 | sample slide yields correct JSON |
 | 3 | Dates: chrono cross-check anchored to capture time; agree = auto, disagree = review | core | 00:30 | "quiz moved to Friday" resolves to the right ISO date |
 | 4 | Index: chunk, embed, FTS + vec insert | core | 00:45 | search returns the right file |
-| 5 | UI: Files list with title and summary, Subjects sidebar, Timeline tab, Ask bar | ui | 02:00 | all four views render live data |
+| 5 | UI: Subjects home (per subject: recent captures with title and summary, next deadline, quiz button), Timeline tab, Ask bar | ui | 02:00 | all views render live data |
 | 6 | Ask: hybrid retrieval, answer with file id citation, refuse below threshold, show source file | core | 01:00 | "when's my bio quiz" answers with photo |
-| 7 | Network panel: a visible indicator that the server made zero outbound requests during a session | ui | 00:30 | counter stays at 0 while indexing |
-| 8 | Stretch, quiz: five MCQs from a subject, graded, source shown | core | 00:45 | only if 1 to 7 are done by 05:00 |
+| 7 | Quiz: five MCQs from a subject, graded, source shown | core | 00:45 | "quiz me on Biology" yields 5 answerable questions |
+| 8 | Network panel: a visible indicator that the server made zero outbound requests during a session | ui | 00:30 | counter stays at 0 while indexing |
+
+If time runs out, cut step 7 first, then step 8. Never cut 1 to 6.
 
 Run order per worker: `npm run dev` on the main tree, workers on worktrees use `-p 3101`, `-p 3102`.
 
@@ -36,7 +38,7 @@ Run order per worker: `npm run dev` on the main tree, workers on worktrees use `
 3. Hold a printed Biology slide to the camera (Continuity Camera or a photo dropped into the watch folder). It files under Biology with a summary.
 4. Ask: "when's my bio quiz and what's it on". Answer cites the screenshot and shows it.
 5. Turn Wi-Fi off. Drop one more file. Still works. Network panel still 0.
-6. If quiz shipped: "quiz me on Biology", answer one question out loud, graded with the slide shown.
+6. "Quiz me on Biology", answer one question out loud, graded with the slide shown.
 
 Say out loud: the model names, their sizes, and the measured time per file on this M4 with 16 GB.
 

@@ -1,10 +1,10 @@
 # DéjàFind
 
-**Your files, understood. No internet needed.**
+**The offline study brain.**
 
-DéjàFind watches your Screenshots, Downloads, and a drop folder. Every new photo, screenshot, or PDF is read, titled, summarized, tagged by subject, and placed on a deadline timeline, by itself, on your own laptop. Ask "when's my bio quiz?" and it answers from your own files and shows the one it came from.
+Snap your slides, screenshot your GC, drop your LMS files. DéjàFind watches your folders and, by itself, files every capture under its subject, puts every deadline on one timeline, and quizzes you from your own notes. Ask "when's my bio quiz?" and it answers from your captures and shows the one it came from. All on your own laptop, no internet.
 
-Built for students first. Works for anyone with files.
+Built by students, for students.
 
 AppBuildersPH Hackathon 2026 entry. Theme: Local AI.
 
@@ -28,7 +28,7 @@ Open http://localhost:3100. Drop a file into `data/watch/` or take a screenshot.
 
 ## What runs locally, what needs internet
 
-- **Runs locally:** everything in the product. File watching, reading images and PDFs, summarizing, subject tagging, date extraction, search, question answering, and the quiz all run on the laptop through Ollama.
+- **Runs locally:** everything in the product. File watching, reading images and PDFs, summarizing, subject filing, date extraction, search, question answering, and the quiz all run on the laptop through Ollama.
 - **Needs internet:** only the one-time model download through `ollama pull`. Nothing at runtime.
 
 ## Disclosures
