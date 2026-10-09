@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DéjàFind — pitch</title>
+<!-- Offline deck: no network requests. Figtree (OFL) is self-hosted from fonts/. Keys: → space next, ← back, F fullscreen. -->
+<style>
+  @font-face {
+    font-family: "Figtree";
+    font-style: normal;
+    font-weight: 300 900;
+    font-display: block;
+    src: url("fonts/figtree-latin.woff2") format("woff2");
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  }
+  @font-face {
+    font-family: "Figtree";
+    font-style: normal;
+    font-weight: 300 900;
+    font-display: block;
+    src: url("fonts/figtree-latin-ext.woff2") format("woff2");
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+  }
+  :root {
+    --page: #fcfcfa;
+    --ink: #1f1f1d;
+    --secondary: #7a7a74;
+    --hairline: #ededea;
+    --accent: #c2410c;
+    --success: #3c9a5f;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--page); color: var(--ink); overflow: hidden; }
+  body { font-family: Figtree, system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
+
+  /* Every slide is designed on a 1920×1080 stage, scaled to fit the window. */
+  .stage { position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; transform-origin: center center; }
+  .slide {
+    position: absolute; inset: 0; padding: 120px 160px;
+    display: flex; flex-direction: column; justify-content: center;
+    opacity: 0; visibility: hidden; transform: translateY(16px);
+    transition: opacity 420ms cubic-bezier(.2,.7,.2,1), transform 420ms cubic-bezier(.2,.7,.2,1), visibility 0s linear 420ms;
+  }
+  .slide.on { opacity: 1; visibility: visible; transform: none; transition-delay: 0s; }
+  .slide.ink { background: var(--ink); color: var(--page); }
+
+  h1, h2, .big { font-weight: 600; letter-spacing: -0.02em; margin: 0; }
+  .accent { color: var(--accent); }
+  .muted { color: var(--secondary); }
+  .ink .muted { color: #b9b9b2; }
+
+  /* 1 — name */
+  .name { align-items: center; text-align: center; gap: 48px; }
+  .lockup { display: flex; align-items: center; gap: 44px; }
+  .lockup svg { width: 168px; height: 168px; }
+  .lockup span { font-size: 168px; font-weight: 600; letter-spacing: -0.02em; line-height: 1; }
+  .tagline { font-size: 56px; font-weight: 500; letter-spacing: -0.01em; }
+  .team { font-size: 30px; margin-top: 24px; }
+
+  /* 2 — pain */
+  .pain { flex-direction: row; align-items: center; gap: 96px; }
+  .pain .words { flex: 1; display: flex; flex-direction: column; gap: 36px; }
+  .pain .words h2 { font-size: 84px; line-height: 1.05; }
+  .pain .words p { font-size: 40px; line-height: 1.3; margin: 0; max-width: 820px; }
+  .roll {
+    width: 560px; height: 900px; flex: none; border-radius: 56px; background: #fff;
+    box-shadow: 0 2px 4px rgba(31,31,29,.06), 0 30px 80px rgba(31,31,29,.16);
+    padding: 72px 14px 14px; overflow: hidden; position: relative;
+  }
+  .roll::before { content: "Recents"; position: absolute; top: 22px; left: 28px; font-size: 26px; font-weight: 600; }
+  .roll .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+  .roll .grid div { aspect-ratio: 1; background-size: cover; background-position: center; border-radius: 3px; box-shadow: inset 0 0 0 1px var(--hairline); background-color: #f4f4f1; }
+  .slide.on .roll .grid div { animation: pop 500ms cubic-bezier(.2,.7,.2,1) both; }
+  @keyframes pop { from { opacity: 0; transform: scale(.85); } }
+
+  /* 3 — what it does */
+  .does { align-items: center; text-align: center; gap: 56px; }
+  .does .big { font-size: 124px; line-height: 1; display: flex; gap: .45em; }
+  .does .big span { opacity: 0; transform: translateY(18px); transition: opacity 500ms, transform 500ms cubic-bezier(.2,.7,.2,1); }
+  .slide.on .does-w span, .slide.on.does .big span { opacity: 1; transform: none; }
+  .slide.on.does .big span:nth-child(2) { transition-delay: 250ms; }
+  .slide.on.does .big span:nth-child(3) { transition-delay: 500ms; }
+  .does p { font-size: 52px; margin: 0; font-weight: 500; }
+
+  /* 4 — demo */
+  .demo { align-items: center; justify-content: center; }
+  .demo .big { font-size: 320px; letter-spacing: -0.04em; }
+
+  /* 5 — why local */
+  .why { gap: 56px; }
+  .why ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 44px; }
+  .why li { font-size: 72px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.1; display: flex; gap: 40px; align-items: baseline; }
+  .why li b { font-size: 36px; color: var(--secondary); font-weight: 500; width: 40px; flex: none; }
+  .small { font-size: 28px; line-height: 1.5; color: var(--secondary); border-top: 1px solid var(--hairline); padding-top: 32px; margin-top: 24px; }
+
+  /* 6 — different and next */
+  .diff { gap: 64px; }
+  .cols { display: grid; grid-template-columns: 1.25fr 1fr; gap: 72px; }
+  .card {
+    background: #fff; border-radius: 28px; padding: 48px 56px;
+    box-shadow: 0 1px 2px rgba(31,31,29,.05), 0 18px 50px rgba(31,31,29,.08);
+  }
+  .card h3 { font-size: 30px; font-weight: 600; color: var(--secondary); margin: 0 0 28px; letter-spacing: 0; text-transform: none; }
+  .card ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 22px; font-size: 36px; line-height: 1.3; }
+  .card ul li span { color: var(--secondary); }
+  .card .verdict { margin-top: 36px; font-size: 40px; font-weight: 600; letter-spacing: -0.01em; }
+  .close { font-size: 64px; font-weight: 600; letter-spacing: -0.02em; text-align: center; }
+
+  .count { position: fixed; right: 28px; bottom: 22px; font-size: 14px; color: var(--secondary); font-variant-numeric: tabular-nums; opacity: .7; }
+  .hint { position: fixed; left: 28px; bottom: 22px; font-size: 14px; color: var(--secondary); opacity: .6; transition: opacity 600ms; }
+  body.ink .count, body.ink .hint { color: #b9b9b2; }
+  @media (prefers-reduced-motion: reduce) { .slide, .does .big span { transition: none; } .slide.on .roll .grid div { animation: none; } }
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+
+  <section class="slide name" aria-label="1. Name">
+    <div class="lockup">
+      <svg viewBox="0 0 64 64" fill="none" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" fill="currentColor" d="M18 8L36 8L44 22L50 14L50 52A4 4 0 0 1 46 56L18 56A4 4 0 0 1 14 52L14 12A4 4 0 0 1 18 8Z M23.5 36H40.5A2.5 2.5 0 0 1 43 38.5A2.5 2.5 0 0 1 40.5 41H23.5A2.5 2.5 0 0 1 21 38.5A2.5 2.5 0 0 1 23.5 36Z"/></svg>
+      <span>DéjàFind</span>
+    </div>
+    <div class="tagline">Find what you already saw.</div>
+    <!-- FOUNDER: replace with the team names exactly as on the AppBuildersPH participant list. -->
+    <div class="team muted">[Team names]</div>
+  </section>
+
+  <section class="slide pain" aria-label="2. The pain">
+    <div class="words">
+      <h2>You photograph everything.</h2>
+      <h2 class="accent">You never open it again.</h2>
+      <p class="muted">And the quiz date was in a group chat three weeks ago.</p>
+    </div>
+    <div class="roll" aria-hidden="true"><div class="grid" id="roll"></div></div>
+  </section>
+
+  <section class="slide does" aria-label="3. What it does">
+    <div class="big"><span>Watches.</span><span>Understands.</span><span class="accent">Finds.</span></div>
+    <p class="muted">No upload. No internet.</p>
+  </section>
+
+  <section class="slide demo ink" aria-label="4. Live demo">
+    <div class="big">DEMO</div>
+  </section>
+
+  <section class="slide why" aria-label="5. Why local">
+    <ol>
+      <li><b>1</b><span>A website can’t watch your folders.</span></li>
+      <li><b>2</b><span>Under half of Filipino homes have internet.</span></li>
+      <li><b>3</b><span>Your notes <span class="accent">never leave your laptop.</span></span></li>
+    </ol>
+    <!-- Measured on this machine from /api/status (avgReadMs) on main; see the comment in docs/SUBMISSION.md. -->
+    <div class="small">Three local models through Ollama: qwen2.5-vl 3B reads images, qwen3 4B reads text and answers, nomic-embed for search.
+      Measured <span id="spd">5.4 s</span> per document on an M4 MacBook, 16 GB, one server, warm models. 0 requests sent.</div>
+  </section>
+
+  <section class="slide diff" aria-label="6. What's different, and what's next">
+    <div class="cols">
+      <div class="card">
+        <h3>What else is out there</h3>
+        <ul>
+          <li>Pixel Screenshots <span>· Pixel 9 only, 15 a day</span></li>
+          <li>NotebookLM <span>· cloud, you upload by hand</span></li>
+          <li>Google Lens <span>· one photo at a time, in the cloud</span></li>
+        </ul>
+        <div class="verdict">The only one we found that does all of this offline.</div>
+      </div>
+      <div class="card">
+        <h3>Next</h3>
+        <ul>
+          <li>A phone app, same models.</li>
+          <li><span>The 3B and 4B models already run on flagship Androids.</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="close">Built by students, <span class="accent">for students.</span></div>
+  </section>
+
+</div>
+<div class="hint" id="hint">→ next · ← back · F fullscreen</div>
+<div class="count" id="count"></div>
+<script>
+  // Camera-roll grid for slide 2, built from the synthetic demo files.
+  const imgs = ["bio-mitosis-slide", "whiteboard-photosynthesis", "calc-limits-slide", "sanaysay-wika-kultura",
+    "physics-kinematics-slide", "calc-longquiz-handout", "gc-biology-quiz-oct17", "timetable-bscs-2b"];
+  const order = [0, 3, 6, 1, 4, 7, 2, 5, 0, 6, 1, 3, 7, 4, 2, 5, 1, 0, 4, 6, 3, 5, 7, 2, 0, 1, 6];
+  const roll = document.getElementById("roll");
+  for (let i = 0; i < 27; i++) {
+    const d = document.createElement("div");
+    d.style.backgroundImage = `url("img/${imgs[order[i % order.length]]}.jpg")`;
+    d.style.animationDelay = `${i * 45}ms`;
+    roll.appendChild(d);
+  }
+
+  const stage = document.getElementById("stage");
+  const slides = [...document.querySelectorAll(".slide")];
+  const count = document.getElementById("count");
+  let cur = 0;
+  function fit() {
+    const s = Math.min(innerWidth / 1920, innerHeight / 1080);
+    stage.style.transform = `translate(-50%, -50%) scale(${s})`;
+  }
+  function show(n) {
+    cur = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach((s, i) => s.classList.toggle("on", i === cur));
+    document.body.classList.toggle("ink", slides[cur].classList.contains("ink"));
+    document.body.style.background = slides[cur].classList.contains("ink") ? "#1f1f1d" : "";
+    count.textContent = `${cur + 1} / ${slides.length}`;
+    if (location.hash !== `#${cur + 1}`) history.replaceState(null, "", `#${cur + 1}`);
+  }
+  addEventListener("keydown", (e) => {
+    if (["ArrowRight", "ArrowDown", "PageDown", " ", "Enter"].includes(e.key)) { e.preventDefault(); show(cur + 1); }
+    else if (["ArrowLeft", "ArrowUp", "PageUp", "Backspace"].includes(e.key)) { e.preventDefault(); show(cur - 1); }
+    else if (e.key === "Home") show(0);
+    else if (e.key === "End") show(slides.length - 1);
+    else if (e.key === "f" || e.key === "F") {
+      if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen?.();
+    }
+    document.getElementById("hint").style.opacity = 0;
+  });
+  addEventListener("click", (e) => { show(cur + (e.clientX < innerWidth / 4 ? -1 : 1)); });
+  addEventListener("resize", fit);
+  addEventListener("hashchange", () => show((parseInt(location.hash.slice(1), 10) || 1) - 1));
+  fit();
+  show((parseInt(location.hash.slice(1), 10) || 1) - 1);
+</script>
+</body>
+</html>

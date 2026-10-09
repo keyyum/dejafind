@@ -49,3 +49,6 @@ next-env.d.ts
 *.db
 /models/
 /.agents/
+
+# story: raw screen recordings and recorder scratch
+video/takes/
