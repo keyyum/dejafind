@@ -69,7 +69,7 @@ async function generateQuestions(
   aliases: string[],
   count: number
 ): Promise<RawQuizQuestion[]> {
-  const prompt = `You write multiple-choice quiz questions for a student studying the documents below. Generate exactly ${count} questions. Respond with ONLY a JSON object, no commentary: {"questions": [{"question": string, "choices": [string,string,string,string] (exactly four, one correct), "answerIndex": number (0-3, index of the correct choice), "explanation": string (one line, shown after answering), "sourceDocumentId": string (must be exactly one of: ${aliases.join(", ")})}]}.\n\nDocuments:\n${context}`;
+  const prompt = `You write multiple-choice quiz questions for a student studying the documents below. Generate exactly ${count} questions. Respond with ONLY a JSON object, no commentary: {"questions": [{"question": string, "choices": [string,string,string,string] (exactly four, one correct), "answerIndex": number (0-3, index of the correct choice), "explanation": string (one sentence, shown after answering), "sourceDocumentId": string (must be exactly one of: ${aliases.join(", ")})}]}.\n\nDocuments:\n${context}`;
 
   const allowed = new Set(aliases);
   let lastError = "no attempt";
@@ -80,7 +80,7 @@ async function generateQuestions(
         format: "json",
         keep_alive: -1,
         think: false,
-        options: { temperature: 0.4, num_ctx: 8192 },
+        options: { temperature: 0.4, num_ctx: 8192, num_predict: 700 },
         messages: [{ role: "user", content: prompt }],
       });
       const parsed = parseModelJson(response.message.content);

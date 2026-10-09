@@ -67,7 +67,8 @@ Numbers below come from `node scripts/bench.mjs` run on Oct 10 2026 at 05:09 aga
 | Reading a one-page PDF (text model) | 39.7 s |
 | Keyword search | 0.1 s |
 | Question with a cited answer | 9.7 s to 14.1 s |
-| Five-question quiz on a subject | 60.7 s |
+| Five-question quiz on a subject, generated on demand | 60.7 s |
+| The same quiz when the app had already written it in the background (it does this 20 s after a subject gets a new document) | 1.5 s |
 | Seven flashcards | 37.8 s |
 | Reviewer sheet, ten lines | 44.1 s |
 | Word boxes for the Lens tap (Apple Vision, first call compiles the helper) | 17.7 s |
