@@ -31,6 +31,25 @@ Open http://localhost:3100. Drop a file into `data/watch/` or take a screenshot.
 - **Runs locally:** everything in the product. File watching, reading images and PDFs, summarizing, subject filing, date extraction, search, question answering, and the quiz all run on the laptop through Ollama.
 - **Needs internet:** only the one-time model download through `ollama pull`. Nothing at runtime.
 
+## Measured on this machine
+
+Numbers below come from `node scripts/bench.mjs` run on Oct 10 2026 at 05:09 against a fresh production build (`next build && next start`) on this Apple M4 with 16 GB, nothing else using Ollama. Rerun it yourself: start the app with an empty `data/` folder, then `node scripts/bench.mjs --base http://localhost:3000`. The full output is in `docs/BENCH.md`.
+
+| What | Time |
+|---|---|
+| First read after the server starts (model load included) | 39 s |
+| Reading a screenshot, photo, or slide, warm (10 files) | 8.5 s to 20.8 s, average 15.7 s |
+| Reading a one-page PDF (text model) | 39.7 s |
+| Keyword search | 0.1 s |
+| Question with a cited answer | 9.7 s to 14.1 s |
+| Five-question quiz on a subject | 60.7 s |
+| Seven flashcards | 37.8 s |
+| Reviewer sheet, ten lines | 44.1 s |
+| Word boxes for the Lens tap (Apple Vision, first call compiles the helper) | 17.7 s |
+| Outbound requests during the whole run | 0 |
+
+Earlier runs on the same machine measured 5.4 s per read when the server had just read a similar file; the story pane's rehearsal run measured a 10.7 s median read, 12.4 s per cited answer, and 33 s per quiz. Expect that range. The first read after launch is always the slowest, so warm the app with one file before a demo.
+
 ## Disclosures
 
 Keep this section current. Every model, framework, and library is listed the moment it is added.
@@ -52,9 +71,9 @@ Keep this section current. Every model, framework, and library is listed the mom
 
 **Cloud services and APIs:** none in the product. Next.js's own anonymous build telemetry is disabled on the demo machine with `npx next telemetry disable` so the outbound-request counter reads zero.
 
-**Existing code and assets:** none. Scaffolded with `create-next-app` on Oct 10 2026 during the hackathon. Sample files in `data/samples/` are synthetic.
+**Existing code and assets:** none. Scaffolded with `create-next-app` on Oct 10 2026 during the hackathon. Sample files in `data/samples/` are synthetic: most are rendered from HTML we wrote; three photos (`bio-mitosis-slide.jpg`, `whiteboard-photosynthesis.jpg`, `calc-longquiz-handout.jpg`) were generated with OpenAI Codex's image tool during the hackathon from text we wrote, so the demo has realistic camera photos without using anyone's real documents.
 
-**AI development tools:** Claude Code (Anthropic) was used as a coding assistant. All code was written during the hackathon.
+**AI development tools:** Claude Code (Anthropic) was used as a coding assistant. All code was written during the hackathon. The logo mark is a hand-drawn SVG based on a concept image generated with OpenAI Codex during the hackathon; no generated raster ships as a logo.
 
 ## Team
 
