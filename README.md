@@ -8,6 +8,30 @@ Built by students, for students.
 
 AppBuildersPH Hackathon 2026 entry. Theme: Local AI.
 
+## Demo
+
+- **60-second video:** [`video/dejafind-demo.mp4`](video/dejafind-demo.mp4), recorded from the real app on this laptop (no mockups) and cut in HyperFrames. The waits for the local models are cut for time, and the video marks each cut.
+- **90-second stage backup:** [`video/dejafind-backup.mp4`](video/dejafind-backup.mp4), the live demo script end to end, full screen, with captions.
+- **Pitch deck:** open [`pitch/index.html`](pitch/index.html) in a browser. Works offline from `file://`. → or space for next, ← for back, F for fullscreen.
+
+## Screenshots
+
+| Library | Document view |
+|---|---|
+| ![Library: documents filed by subject, with the Coming up strip](docs/screenshots/library.png) | ![Document view: the screenshot beside exactly what was read, its subject, and its date](docs/screenshots/document-view.png) |
+
+## Measured on this machine
+
+<!-- story: numbers from /api/status after the final takes; fill before merge -->
+Apple M4 MacBook, 16 GB, one server under `next start`, models warm, nothing else using Ollama:
+
+- TBD s per document read (average over N documents, the app's own `avgReadMs`)
+- TBD s for a cited answer to "when's my bio quiz"
+- TBD s to write a five-question quiz for one subject
+- 0 outbound requests (the app's own counter)
+
+These are single-machine measurements, not a benchmark. Under load from other processes the same steps take several times longer.
+
 ## Why local AI
 
 A website cannot watch your folders; it has to ask you to upload. Only software running on your machine can organize files as they arrive. It works with no signal and no data, costs nothing per file, and your class photos and personal screenshots never leave the device.
@@ -55,6 +79,10 @@ Keep this section current. Every model, framework, and library is listed the mom
 **Existing code and assets:** none. Scaffolded with `create-next-app` on Oct 10 2026 during the hackathon. Sample files in `data/samples/` are synthetic.
 
 **AI development tools:** Claude Code (Anthropic) was used as a coding assistant. All code was written during the hackathon.
+
+**Exact npm packages in `package.json`, for completeness:** `@base-ui/react`, `@tailwindcss/turbopack`, `@techstark/opencv-js`, `@types/better-sqlite3`, `@types/node`, `@types/react`, `@types/react-dom`, `better-sqlite3`, `chokidar`, `chrono-node`, `class-variance-authority`, `cmdk`, `cn`, `eslint`, `eslint-config-next`, `lucide-react`, `motion`, `next`, `next-themes`, `ollama`, `pdf-parse`, `radix-ui`, `react`, `react-dom`, `shadcn`, `sharp`, `sonner`, `sqlite-vec`, `tailwindcss`, `tw-animate-css`, `typescript`.
+
+**Demo video and pitch deck tooling (not part of the app):** HyperFrames (HeyGen's open-source HTML-to-video CLI) composites and renders `video/dejafind-demo.mp4` and `video/dejafind-backup.mp4`; the compositions in `video/hf/` load GSAP 3 (GreenSock, free standard licence) at render time. `ffmpeg` cuts the recordings. Headless Google Chrome, driven over the DevTools protocol by the scripts in `video/tools/` (no npm dependencies), records the real app; its fake-camera input is a frame made from the synthetic `whiteboard-photosynthesis.jpg`. Figtree (OFL) is copied from the app's own `next/font` build into `pitch/fonts/` and `video/hf/assets/fonts/` so the deck and video need no network. Every document shown in the video and the deck is a synthetic sample from `data/samples/demo/`.
 
 ## Team
 
