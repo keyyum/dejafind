@@ -54,6 +54,10 @@ const FAMILY: Record<string, string> = {
   chemistry: "chem",
   fil: "filipino",
   filipino: "filipino",
+  wika: "filipino",
+  sanaysay: "filipino",
+  panitikan: "filipino",
+  tagalog: "filipino",
   pe: "pe",
   physed: "pe",
   physicaleducation: "pe",
@@ -97,8 +101,17 @@ export function normalizeSubjectName(raw: string | null | undefined): string {
 }
 
 /** Family key for fuzzy-matching against existing subjects; null when the name isn't in a known family. */
+/** Checks the whole (alias-collapsed) name first, then each word on its own, so a
+ * multi-word name like "Wika at Kultura" still matches the single-word "wika" entry
+ * that alphaKey() would otherwise merge into one unmatched token. */
 function familyKey(name: string): string | null {
-  return FAMILY[alphaKey(stripCourseNumber(name))] ?? null;
+  const stripped = stripCourseNumber(name);
+  const whole = FAMILY[alphaKey(stripped)];
+  if (whole) return whole;
+  for (const word of stripped.toLowerCase().split(/[^a-z]+/).filter(Boolean)) {
+    if (FAMILY[word]) return FAMILY[word];
+  }
+  return null;
 }
 
 interface SubjectRow {
@@ -249,22 +262,27 @@ function isValidScheduleJson(value: unknown): value is RawScheduleJson {
 }
 
 async function parseScheduleEntries(text: string): Promise<RawScheduleJson> {
-  const prompt = `Parse this class schedule / timetable text. Respond with ONLY a JSON object, no commentary: {"section": string or null (the class section code, e.g. "BSCS 2-B"), "entries": [{"subject": string, "weekday": number (0=Sunday..6=Saturday), "start": "HH:MM" 24-hour, "end": "HH:MM" 24-hour, "room": string or null}]}. One entry per class meeting, expand repeated days into separate entries.\n\nText:\n${text}`;
+  const prompt = `Parse this class schedule / timetable text. Respond with ONLY a JSON object, no commentary: {"section": string or null (the class section code, e.g. "BSCS 2-B"), "entries": [{"subject": string, "weekday": number (0=Sunday..6=Saturday), "start": "HH:MM" 24-hour, "end": "HH:MM" 24-hour, "room": string or null (the room or venue column for this class, e.g. "Room 301" or "Covered Court" — ALWAYS include this key in every entry; use null only if no room/venue is shown at all)}]}. Every entry MUST have all five keys: subject, weekday, start, end, room. One entry per class meeting, expand repeated days into separate entries.\n\nText:\n${text}`;
   let lastError = "no attempt";
   for (let attempt = 0; attempt < 2; attempt++) {
-    const response = await ollama.chat({
-      model: TEXT_MODEL,
-      format: "json",
-      keep_alive: -1,
-      think: false,
-      options: { temperature: 0, num_ctx: 8192 },
-      messages: [{ role: "user", content: prompt }],
-    });
-    const parsed = parseModelJson(response.message.content);
-    if (isValidScheduleJson(parsed)) return parsed;
-    lastError = response.message.content.slice(0, 200);
+    try {
+      const response = await ollama.chat({
+        model: TEXT_MODEL,
+        format: "json",
+        keep_alive: -1,
+        think: false,
+        options: { temperature: 0, num_ctx: 8192 },
+        messages: [{ role: "user", content: prompt }],
+      });
+      const parsed = parseModelJson(response.message.content);
+      if (isValidScheduleJson(parsed)) return parsed;
+      lastError = response.message.content.slice(0, 200);
+    } catch (err) {
+      // Ollama itself can throw (e.g. its own repeat-loop guard); retry covers both.
+      lastError = err instanceof Error ? err.message : String(err);
+    }
   }
-  throw new Error(`schedule model returned invalid JSON after retry: ${lastError}`);
+  throw new Error(`schedule model failed after retry: ${lastError}`);
 }
 
 export async function createSchedulePending(row: DocumentRow, read: ReadResult): Promise<SchedulePending> {

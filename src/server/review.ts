@@ -31,19 +31,23 @@ async function generateLines(context: string, aliases: string[]): Promise<RawRev
   const allowed = new Set(aliases);
   let lastError = "no attempt";
   for (let attempt = 0; attempt < 2; attempt++) {
-    const response = await ollama.chat({
-      model: TEXT_MODEL,
-      format: "json",
-      keep_alive: -1,
-      think: false,
-      options: { temperature: 0.2, num_ctx: 8192 },
-      messages: [{ role: "user", content: prompt }],
-    });
-    const parsed = parseModelJson(response.message.content);
-    if (isValidReviewJson(parsed, allowed)) return parsed.lines;
-    lastError = response.message.content.slice(0, 200);
+    try {
+      const response = await ollama.chat({
+        model: TEXT_MODEL,
+        format: "json",
+        keep_alive: -1,
+        think: false,
+        options: { temperature: 0.2, num_ctx: 8192 },
+        messages: [{ role: "user", content: prompt }],
+      });
+      const parsed = parseModelJson(response.message.content);
+      if (isValidReviewJson(parsed, allowed)) return parsed.lines;
+      lastError = response.message.content.slice(0, 200);
+    } catch (err) {
+      lastError = err instanceof Error ? err.message : String(err);
+    }
   }
-  throw new Error(`review model returned invalid JSON after retry: ${lastError}`);
+  throw new Error(`review model failed after retry: ${lastError}`);
 }
 
 /** POST /api/review: a short study sheet for one subject, each line cites its document. Tier 2. */

@@ -183,18 +183,23 @@ async function answerQuestion(query: string, chunks: RankedRow[], conversationId
 
   let raw: RawAnswerJson | null = null;
   for (let attempt = 0; attempt < 2; attempt++) {
-    const response = await ollama.chat({
-      model: TEXT_MODEL,
-      format: "json",
-      keep_alive: -1,
-      think: false,
-      options: { temperature: 0, num_ctx: 8192 },
-      messages,
-    });
-    const parsed = parseModelJson(response.message.content);
-    if (isValidAnswerJson(parsed)) {
-      raw = parsed;
-      break;
+    try {
+      const response = await ollama.chat({
+        model: TEXT_MODEL,
+        format: "json",
+        keep_alive: -1,
+        think: false,
+        options: { temperature: 0, num_ctx: 8192 },
+        messages,
+      });
+      const parsed = parseModelJson(response.message.content);
+      if (isValidAnswerJson(parsed)) {
+        raw = parsed;
+        break;
+      }
+    } catch {
+      // Ollama itself can throw (e.g. its own repeat-loop guard); retry covers it,
+      // and the "not in your files" fallback below covers a second failure.
     }
   }
   if (!raw) raw = { answer: "Not in your files.", keyFact: null, citations: [] };
