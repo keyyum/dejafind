@@ -188,7 +188,7 @@ async function answerQuestion(query: string, chunks: RankedRow[], conversationId
       format: "json",
       keep_alive: -1,
       think: false,
-      options: { temperature: 0 },
+      options: { temperature: 0, num_ctx: 8192 },
       messages,
     });
     const parsed = parseModelJson(response.message.content);

@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { promisify } from "node:util";
 import ollama from "ollama";
 import { PDFParse } from "pdf-parse";
+import sharp from "sharp";
 import type { DocType } from "@/lib/api-types";
 import { derivedDir } from "@/server/db";
 import type { DocumentRow } from "@/server/documents";
@@ -14,6 +15,26 @@ const execFileAsync = promisify(execFile);
 const VISION_MODEL = "qwen2.5vl:3b";
 const TEXT_MODEL = "qwen3:4b";
 const PDFTOPPM_BIN = "/opt/homebrew/bin/pdftoppm";
+/** qwen2.5vl's default num_ctx (4096) overflows on large images; this covers prompt + a big image grid. */
+const VISION_NUM_CTX = 8192;
+const TEXT_NUM_CTX = 8192;
+/** Downscaled before sending to the vision model: keeps tokens bounded, plenty for OCR. */
+const MAX_IMAGE_DIMENSION = 1280;
+/** Truncated before sending to the text model: keeps tokens bounded on long PDFs. */
+const MAX_TEXT_CHARS = 6000;
+
+async function downscaleForVision(imageBuffer: Buffer): Promise<Buffer> {
+  return sharp(imageBuffer)
+    .rotate()
+    .resize({
+      width: MAX_IMAGE_DIMENSION,
+      height: MAX_IMAGE_DIMENSION,
+      fit: "inside",
+      withoutEnlargement: true,
+    })
+    .jpeg({ quality: 88 })
+    .toBuffer();
+}
 
 const VALID_DOC_TYPES = new Set<string>([
   "slide",
@@ -101,19 +122,20 @@ export function parseModelJson(content: string): unknown {
 function promptFor(capturedAt: string): string {
   return `You read a photo or document for a student's study app. Respond with ONLY a JSON object, no markdown fences, no commentary, in exactly this shape:
 {"text": string (verbatim text you can read, newline separated), "title": string (<=8 words), "summary": string (one sentence), "tags": string[] (3-6 short keywords), "subject": string (school subject such as "Biology"; empty string if none is evident), "doc_type": one of "slide","whiteboard","handout","chat","schedule","pdf","other", "dates": [{"iso_date": "YYYY-MM-DD", "label": string (what the date is for), "span": string (the exact substring of text this date came from)}], "schedule_section": string or null (only set for doc_type "schedule": the section/class code if visible, e.g. "BSCS 2-B")}.
-The capture date is ${capturedAt}. Resolve relative dates ("next Friday", "moved to Oct 17") against that date. If there are no dates, use an empty array. If this looks like a class schedule or timetable, set doc_type to "schedule".`;
+The capture date is ${capturedAt}. IMPORTANT: scan the text for every mention of a date, day of week, or deadline (words like "due", "moved to", "on", "quiz", "exam", a month name, or a day name) and add ONE entry per date to the "dates" array with its resolved "iso_date". Do not leave "dates" empty if the text names any date or day. Resolve relative dates ("next Friday", "moved to Oct 17") against the capture date above. If this looks like a class schedule or timetable, set doc_type to "schedule".`;
 }
 
 async function callVisionModel(imageBuffer: Buffer, capturedAt: string): Promise<RawReaderJson> {
   const prompt = promptFor(capturedAt);
+  const scaled = await downscaleForVision(imageBuffer);
   let lastError = "no attempt";
   for (let attempt = 0; attempt < 2; attempt++) {
     const response = await ollama.chat({
       model: VISION_MODEL,
       format: "json",
       keep_alive: -1,
-      options: { temperature: 0 },
-      messages: [{ role: "user", content: prompt, images: [imageBuffer] }],
+      options: { temperature: 0, num_ctx: VISION_NUM_CTX },
+      messages: [{ role: "user", content: prompt, images: [scaled] }],
     });
     const parsed = parseModelJson(response.message.content);
     if (isValidReaderJson(parsed)) return parsed;
@@ -123,7 +145,8 @@ async function callVisionModel(imageBuffer: Buffer, capturedAt: string): Promise
 }
 
 async function callTextModel(text: string, capturedAt: string): Promise<RawReaderJson> {
-  const prompt = `${promptFor(capturedAt)}\n\nDocument text:\n${text}`;
+  const truncated = text.length > MAX_TEXT_CHARS ? text.slice(0, MAX_TEXT_CHARS) : text;
+  const prompt = `${promptFor(capturedAt)}\n\nDocument text:\n${truncated}`;
   let lastError = "no attempt";
   for (let attempt = 0; attempt < 2; attempt++) {
     const response = await ollama.chat({
@@ -131,7 +154,7 @@ async function callTextModel(text: string, capturedAt: string): Promise<RawReade
       format: "json",
       keep_alive: -1,
       think: false,
-      options: { temperature: 0 },
+      options: { temperature: 0, num_ctx: TEXT_NUM_CTX },
       messages: [{ role: "user", content: prompt }],
     });
     const parsed = parseModelJson(response.message.content);
