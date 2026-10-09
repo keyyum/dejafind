@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { importFiles } from "@/lib/client/api";
@@ -58,7 +58,6 @@ export function useImport() {
 /** Whole-window drop zone plus the "Reading 7 of 20" progress line. */
 export function ImportDrop({ children }: { children: ReactNode }) {
   const router = useRouter();
-  const pathname = usePathname();
   const [over, setOver] = useState(false);
   const [batch, setBatch] = useState<Batch | null>(null);
   const depth = useRef(0);
@@ -70,7 +69,7 @@ export function ImportDrop({ children }: { children: ReactNode }) {
         toast("Nothing to add. DéjàFind reads images and PDFs.");
         return;
       }
-      if (pathname !== "/") router.push("/");
+      if (window.location.pathname !== "/") router.push("/");
       if (list.length > 1) {
         bulkUntil = Date.now() + 10_000;
         bulkRunning = true;
@@ -89,7 +88,7 @@ export function ImportDrop({ children }: { children: ReactNode }) {
         toast(`Could not add files: ${e instanceof Error ? e.message : String(e)}`);
       }
     },
-    [pathname, router],
+    [router],
   );
 
   useDejaEvent((e) => {
