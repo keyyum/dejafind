@@ -121,8 +121,21 @@ async function processDocument(id: string): Promise<void> {
 
     await indexDocument(id, read.text);
 
+    // Clean/warp first so the thumbnail (grid, search, quiz source) is built from
+    // the flat tile when one exists, not the original tilted photo.
+    let cleanPath: string | null = null;
     try {
-      const thumb = await generateThumbnail(row);
+      const clean = await generateCleanImage(row);
+      if (clean) {
+        cleanPath = clean.cleanPath;
+        db.prepare(`UPDATE documents SET clean_path = ? WHERE id = ?`).run(clean.cleanPath, id);
+      }
+    } catch (err) {
+      console.error(`[pipeline] clean image failed for ${id}`, err);
+    }
+
+    try {
+      const thumb = await generateThumbnail(row, cleanPath);
       db.prepare(`UPDATE documents SET thumb_path = ?, width = ?, height = ? WHERE id = ?`).run(
         thumb.thumbPath,
         thumb.width,
@@ -131,15 +144,6 @@ async function processDocument(id: string): Promise<void> {
       );
     } catch (err) {
       console.error(`[pipeline] thumbnail failed for ${id}`, err);
-    }
-
-    try {
-      const clean = await generateCleanImage(row);
-      if (clean) {
-        db.prepare(`UPDATE documents SET clean_path = ? WHERE id = ?`).run(clean.cleanPath, id);
-      }
-    } catch (err) {
-      console.error(`[pipeline] clean image failed for ${id}`, err);
     }
 
     db.prepare(`UPDATE documents SET status = 'done', filed_at = ? WHERE id = ?`).run(
