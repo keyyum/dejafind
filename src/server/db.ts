@@ -125,6 +125,15 @@ function migrate(db: Database.Database) {
       payload TEXT NOT NULL DEFAULT '{}',
       created_at TEXT NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS precomputed (
+      subject_id TEXT NOT NULL,
+      kind TEXT NOT NULL,
+      doc_set_key TEXT NOT NULL,
+      payload TEXT NOT NULL,
+      cached_at TEXT NOT NULL,
+      PRIMARY KEY (subject_id, kind)
+    );
   `);
 
   sqliteVec.load(db);

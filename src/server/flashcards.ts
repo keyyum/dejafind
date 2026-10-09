@@ -55,19 +55,23 @@ async function generateCards(context: string, aliases: string[]): Promise<RawFla
   const allowed = new Set(aliases);
   let lastError = "no attempt";
   for (let attempt = 0; attempt < 2; attempt++) {
-    const response = await ollama.chat({
-      model: TEXT_MODEL,
-      format: "json",
-      keep_alive: -1,
-      think: false,
-      options: { temperature: 0.3, num_ctx: 8192 },
-      messages: [{ role: "user", content: prompt }],
-    });
-    const parsed = parseModelJson(response.message.content);
-    if (isValidFlashcardsJson(parsed, allowed)) return parsed.cards;
-    lastError = response.message.content.slice(0, 200);
+    try {
+      const response = await ollama.chat({
+        model: TEXT_MODEL,
+        format: "json",
+        keep_alive: -1,
+        think: false,
+        options: { temperature: 0.3, num_ctx: 8192 },
+        messages: [{ role: "user", content: prompt }],
+      });
+      const parsed = parseModelJson(response.message.content);
+      if (isValidFlashcardsJson(parsed, allowed)) return parsed.cards;
+      lastError = response.message.content.slice(0, 200);
+    } catch (err) {
+      lastError = err instanceof Error ? err.message : String(err);
+    }
   }
-  throw new Error(`flashcards model returned invalid JSON after retry: ${lastError}`);
+  throw new Error(`flashcards model failed after retry: ${lastError}`);
 }
 
 /** POST /api/flashcards: term/definition cards from a subject or document ids. Tier 2. */
