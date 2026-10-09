@@ -107,7 +107,10 @@ export function patchDate(id: string, patch: DatePatch): Promise<OkResponse> {
 }
 
 export function getWords(id: string): Promise<WordsResponse> {
-  if (USE_MOCK) return Promise.reject(new ApiError("Not available on mock", 404));
+  if (USE_MOCK) {
+    const words = mock.mockWords(id);
+    return words ? delay(words) : Promise.reject(new ApiError("No word boxes", 404));
+  }
   return request(`/api/documents/${encodeURIComponent(id)}/words`);
 }
 

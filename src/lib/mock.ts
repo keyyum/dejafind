@@ -19,6 +19,7 @@ import type {
   Subject,
   SubjectsResponse,
   TimelineEntry,
+  WordsResponse,
 } from "@/lib/api-types";
 
 const SUBJECTS: Subject[] = [
@@ -648,6 +649,30 @@ export function mockReview(): ReviewSheetResponse {
       { text: "Light reactions happen in the thylakoid membrane; the Calvin cycle in the stroma.", documentId: "doc-bio-wb" },
     ],
   };
+}
+
+/** Approximate word boxes for the mock GC screenshot (public/mock/gc-bio-quiz.svg, 28px text). */
+export function mockWords(id: string): WordsResponse | null {
+  if (id !== "doc-gc-bio") return null;
+  const rows: [string, number, number, boolean?][] = [
+    ["Ma'am Reyes", 128, 224],
+    ["Good evening class. Reminder: our Biology", 128, 266],
+    ["quiz is MOVED to October 17 (Friday).", 128, 304],
+    ["Coverage is Chapter 4 and 5, cell division", 128, 342],
+    ["and genetics. Bring calculators.", 128, 380],
+    ["noted maam", 712, 476, true],
+    ["okay po", 740, 554, true],
+  ];
+  const cw = 14;
+  const words: WordsResponse["words"] = [];
+  for (const [line, x0, base, centered] of rows) {
+    let x = centered ? x0 - (line.length * cw) / 2 : x0;
+    for (const w of line.split(" ")) {
+      words.push({ text: w, x, y: base - 24, width: w.length * cw, height: 32 });
+      x += (w.length + 1) * cw;
+    }
+  }
+  return { words, width: 900, height: 900 };
 }
 
 export function mockStatus(): StatusResponse {
