@@ -244,7 +244,7 @@ export function DocumentView() {
               <h2 id="text-heading" className="text-[17px] font-medium text-muted-foreground">Text it read</h2>
               <div
                 tabIndex={0}
-                className="max-h-[300px] overflow-auto rounded-xl border border-hairline bg-white px-5 py-4 text-[16px] leading-relaxed whitespace-pre-wrap text-ink-soft outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="df-paint max-h-[300px] overflow-auto rounded-xl border border-hairline bg-white px-5 py-4 text-[16px] leading-relaxed whitespace-pre-wrap text-ink-soft outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <Highlight text={doc.text} spans={spans} />
               </div>

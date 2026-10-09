@@ -1,7 +1,8 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { motion } from "motion/react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type {
   DocumentGroup,
   DocumentSummary,
@@ -9,7 +10,9 @@ import type {
   TimelineEntry,
 } from "@/lib/api-types";
 import { getDocuments, getSubjects, getTimeline } from "@/lib/client/api";
+import { monthDay } from "@/lib/client/format";
 import { useNow } from "@/hooks/use-now";
+import { DateFlight, Landing, type Flight } from "./capture-motion";
 import { ComingUp } from "./coming-up";
 import { DocTile } from "./doc-tile";
 import { useDejaEvent } from "./events";
@@ -64,6 +67,13 @@ export function LibraryView() {
   const [timeline, setTimeline] = useState<TimelineEntry[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Landing choreography: tiles that flew in, titles still typing, date chips in the air.
+  const [arrivals, setArrivals] = useState<ReadonlySet<string>>(new Set());
+  const [typing, setTyping] = useState<ReadonlySet<string>>(new Set());
+  const [flights, setFlights] = useState<Flight[]>([]);
+  const [hiddenDates, setHiddenDates] = useState<ReadonlySet<string>>(new Set());
+  const pendingDates = useRef(new Map<string, TimelineEntry[]>());
+
   const loadDocs = useCallback(
     () =>
       getDocuments(filter === "schedule" ? "all" : filter).then(
@@ -106,7 +116,10 @@ export function LibraryView() {
   useDejaEvent((e) => {
     switch (e.type) {
       case "document.queued":
-        if (filter === "all") setGroups((g) => upsert(g ?? [], e.document));
+        if (filter === "all") {
+          setArrivals((a) => new Set(a).add(e.document.id));
+          setGroups((g) => upsert(g ?? [], e.document));
+        }
         break;
       case "document.reading":
         setGroups((g) => g && patchDoc(g, e.documentId, { status: "reading" }));
@@ -118,8 +131,18 @@ export function LibraryView() {
           filter === doc.subjectId ||
           (filter === "other" && doc.subjectId === null) ||
           (filter === "schedule" && doc.docType === "schedule");
+        if (belongs) {
+          const seen = groups?.some((g) => g.documents.some((d) => d.id === doc.id));
+          if (!seen) setArrivals((a) => new Set(a).add(doc.id));
+          setTyping((t) => new Set(t).add(doc.id));
+          if (e.dates.length) {
+            pendingDates.current.set(doc.id, e.dates);
+            setHiddenDates((h) => new Set([...h, ...e.dates.map((d) => d.id)]));
+          }
+        }
         setGroups((g) => (belongs ? upsert(g ?? [], doc) : g && remove(g, doc.id)));
-        loadSide();
+        void getSubjects().then(setSubjects).catch(() => {});
+        void getTimeline(3).then((t) => setTimeline(t.entries)).catch(() => {});
         break;
       }
       case "document.error":
@@ -134,6 +157,41 @@ export function LibraryView() {
         break;
     }
   });
+
+  /** Title finished typing: show the subject, then lift each new date into Coming up. */
+  const onTyped = useCallback((id: string) => {
+    setTyping((t) => {
+      const next = new Set(t);
+      next.delete(id);
+      return next;
+    });
+    const dates = pendingDates.current.get(id);
+    pendingDates.current.delete(id);
+    if (!dates?.length) return;
+    const tile = document.querySelector(`[data-doc-id="${CSS.escape(id)}"]`);
+    const strip = document.getElementById("coming-up");
+    if (!tile || !strip) {
+      setHiddenDates((h) => new Set([...h].filter((x) => !dates.some((d) => d.id === x))));
+      return;
+    }
+    const from = tile.getBoundingClientRect();
+    setFlights((f) => [
+      ...f,
+      ...dates.map((d) => {
+        const slot = document.querySelector(`[data-date-id="${CSS.escape(d.id)}"]`) ?? strip.querySelector("h2") ?? strip;
+        return { id: d.id, label: monthDay(d.isoDate), from, to: slot.getBoundingClientRect() };
+      }),
+    ]);
+  }, []);
+
+  const onLand = useCallback((dateId: string) => {
+    setFlights((f) => f.filter((x) => x.id !== dateId));
+    setHiddenDates((h) => {
+      const next = new Set(h);
+      next.delete(dateId);
+      return next;
+    });
+  }, []);
 
   const quizHref = useMemo(() => {
     if (filter !== "all" && filter !== "other" && filter !== "schedule") return `/quiz?subject=${filter}`;
@@ -160,7 +218,7 @@ export function LibraryView() {
           hrefFor={(f) => (f === "all" ? "/" : `/?subject=${encodeURIComponent(f)}`)}
           quizHref={quizHref}
         />
-        <ComingUp entries={timeline} />
+        <ComingUp entries={timeline} hidden={hiddenDates} />
 
         {error && (
           <p className="text-[17px] text-muted-foreground">
@@ -181,18 +239,29 @@ export function LibraryView() {
 
         <div className="flex flex-col gap-12">
           {groups?.map((g) => (
-            <section key={g.day} aria-label={g.label} className="flex flex-col gap-5">
+            <motion.section layout="position" key={g.day} aria-label={g.label} className="flex flex-col gap-5">
               <h2 className="text-[17px] font-medium text-muted-foreground">{g.label}</h2>
               <div className="columns-1 gap-7 sm:columns-2 lg:columns-3 xl:columns-4">
                 {g.documents.map((d) => (
-                  <div key={d.id} className="mb-9 break-inside-avoid">
-                    <DocTile doc={d} now={now} />
-                  </div>
+                  <motion.div
+                    layout="position"
+                    transition={{ type: "spring", stiffness: 260, damping: 30 }}
+                    key={d.id}
+                    data-doc-id={d.id}
+                    className="mb-9 break-inside-avoid"
+                  >
+                    <Landing fly={arrivals.has(d.id)}>
+                      <DocTile doc={d} now={now} typing={typing.has(d.id)} onTyped={onTyped} />
+                    </Landing>
+                  </motion.div>
                 ))}
               </div>
-            </section>
+            </motion.section>
           ))}
         </div>
+        {flights.map((f) => (
+          <DateFlight key={f.id} flight={f} onLand={onLand} />
+        ))}
       </main>
     </>
   );

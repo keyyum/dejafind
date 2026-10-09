@@ -116,7 +116,7 @@ export function SearchView() {
                   </p>
                 </div>
                 {citations.length > 0 && (
-                  <div className="flex shrink-0 gap-6">
+                  <div className="df-paint flex shrink-0 gap-6" style={{ "--d": "0.35s" } as React.CSSProperties}>
                     {citations.map((c) => {
                       const doc = cited[c.documentId];
                       return (
@@ -152,8 +152,8 @@ export function SearchView() {
                   Documents
                 </h2>
                 <ul className="flex max-w-[960px] flex-col">
-                  {res.results.map((r) => (
-                    <li key={r.document.id}>
+                  {res.results.map((r, i) => (
+                    <li key={r.document.id} className="df-paint" style={{ "--d": `${0.2 + i * 0.08}s` } as React.CSSProperties}>
                       <Link
                         href={`/d/${r.document.id}?q=${encodeURIComponent(q)}`}
                         className="-mx-4 flex items-start gap-6 rounded-xl p-4 outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-ring"

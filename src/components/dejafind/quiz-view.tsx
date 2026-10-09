@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ArrowLeftIcon, ArrowRightIcon, Loader2Icon } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useState } from "react";
 import type { Quiz } from "@/lib/api-types";
 import { quiz as fetchQuiz } from "@/lib/client/api";
@@ -37,6 +38,7 @@ function QuizRun({
   onAgain: () => void;
 }) {
   const docsKey = documentIds.join(",");
+  const reduced = useReducedMotion();
   const [data, setData] = useState<Quiz | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [index, setIndex] = useState(0);
@@ -148,8 +150,14 @@ function QuizRun({
             </div>
 
             {picked !== null && (
-              <section aria-live="polite" className="flex flex-wrap items-start gap-x-10 gap-y-6 border-t border-hairline pt-8 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-bottom-2">
-                <div className="flex min-w-0 flex-[999_1_360px] flex-col gap-3">
+              <section aria-live="polite" className="flex flex-wrap items-start gap-x-10 gap-y-6 overflow-hidden border-t border-hairline pt-8">
+                <motion.div
+                  className="flex min-w-0 flex-[999_1_360px] flex-col gap-3"
+                  initial={reduced ? false : { opacity: 0, x: 120, scale: 0.96 }}
+                  animate={{ opacity: 1, x: 0, scale: 1 }}
+                  transition={{ duration: 0.45, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
+                  style={{ transformOrigin: "right center" }}
+                >
                   <p className={cn("text-[20px] font-semibold", right ? "text-filed" : "text-wrong")}>
                     {right ? "Correct" : `Not quite. It’s ${question.choices[question.answerIndex]}.`}
                   </p>
@@ -159,11 +167,18 @@ function QuizRun({
                       From {source.title}
                     </Link>
                   )}
-                </div>
+                </motion.div>
                 {source && (
-                  <Link href={`/d/${source.id}`} aria-label={`Open ${source.title}`} className="w-[200px] shrink-0 rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4">
-                    <Paper doc={source} maxAspect={1.2} />
-                  </Link>
+                  <motion.div
+                    className="relative z-10 w-[200px] shrink-0"
+                    initial={reduced ? false : { opacity: 0, scale: 0.9, y: 10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
+                  >
+                    <Link href={`/d/${source.id}`} aria-label={`Open ${source.title}`} className="block rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4">
+                      <Paper doc={source} maxAspect={1.2} />
+                    </Link>
+                  </motion.div>
                 )}
                 <div className="flex w-full justify-end">
                   <button

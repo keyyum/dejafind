@@ -210,7 +210,7 @@
   --hairline: #ececea;
   --border: #e3e3df;
   --primary: #c2410c;
-  --ring: #c2410c;
+  --ring: #1f1f1d;
   --filed: #2f7d4f;
   --wrong: #c2410c;
   --mark: rgb(194 65 12 / 0.16);
@@ -252,4 +252,17 @@ mark {
 
 @media (prefers-reduced-motion: reduce) {
   .df-sweep::after { animation: none; }
+}
+
+/* Search highlights paint in, left to right. Rows set --d to stagger. */
+@keyframes df-paint {
+  to { background-size: 100% 100%; }
+}
+.df-paint mark {
+  background: linear-gradient(var(--mark), var(--mark)) no-repeat left center / 0% 100%;
+  animation: df-paint 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: var(--d, 0.15s);
+}
+@media (prefers-reduced-motion: reduce) {
+  .df-paint mark { background-size: 100% 100%; animation: none; }
 }
