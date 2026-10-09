@@ -39,6 +39,8 @@ export function Paper({
         <img
           src={url}
           alt=""
+          width={w}
+          height={h}
           loading="lazy"
           decoding="async"
           draggable={false}

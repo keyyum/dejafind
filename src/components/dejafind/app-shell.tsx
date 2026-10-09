@@ -3,10 +3,11 @@
 import { useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
 import { Toaster } from "@/components/ui/sonner";
-import { simulateCapture } from "@/lib/client/api";
+import { simulateCapture, simulateSchedule } from "@/lib/client/api";
 import { USE_MOCK } from "@/lib/client/config";
 import { EventsProvider } from "./events";
 import { FilingSnackbar } from "./filing-snackbar";
+import { ImportDrop } from "./import-drop";
 import { SEARCH_INPUT_ID } from "./search-bar";
 
 /** ⌘K focuses the search bar from anywhere; on screens without one it opens Search. */
@@ -34,7 +35,9 @@ function CommandK() {
 function MockHooks() {
   useEffect(() => {
     if (!USE_MOCK) return;
-    (window as unknown as { dejafindSimulate: () => void }).dejafindSimulate = () => void simulateCapture();
+    const w = window as unknown as { dejafindSimulate: () => void; dejafindSimulateSchedule: () => void };
+    w.dejafindSimulate = () => void simulateCapture();
+    w.dejafindSimulateSchedule = simulateSchedule;
   }, []);
   return null;
 }
@@ -42,7 +45,7 @@ function MockHooks() {
 export function AppShell({ children }: { children: ReactNode }) {
   return (
     <EventsProvider>
-      {children}
+      <ImportDrop>{children}</ImportDrop>
       <CommandK />
       <MockHooks />
       <FilingSnackbar />

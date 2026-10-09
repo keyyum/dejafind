@@ -10,6 +10,7 @@ import { kindWord, relativeDay, seconds } from "@/lib/client/format";
 import { Highlight } from "./highlight";
 import { Paper } from "./paper";
 import { SearchBar } from "./search-bar";
+import { SnapButton } from "./snap";
 import { SiteHeader } from "./site-header";
 import { SubjectFilters } from "./subject-filters";
 
@@ -78,9 +79,13 @@ export function SearchView() {
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto flex w-full max-w-[1320px] flex-col gap-8 px-6 pt-12 pb-32 sm:px-12">
-        <div className="max-w-[880px]">
-          <SearchBar defaultValue={q} subjectId={subject} autoFocus={!q} />
+      <main id="main" className="mx-auto flex w-full max-w-[1320px] flex-col gap-8 px-6 pt-12 pb-32 sm:px-12">
+        <h1 className="sr-only">{q ? `Search results for ${q}` : "Search"}</h1>
+        <div className="flex max-w-[1000px] items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <SearchBar defaultValue={q} subjectId={subject} autoFocus={!q} />
+          </div>
+          <SnapButton />
         </div>
         <div className="flex flex-wrap items-baseline gap-x-8 gap-y-3">
           <div className="min-w-0 flex-1">
@@ -108,7 +113,7 @@ export function SearchView() {
             {answer && (
               <section aria-label="Answer" className="mb-12 flex flex-wrap items-start justify-between gap-x-12 gap-y-8 border-b border-hairline pb-12">
                 <div className="flex max-w-[680px] min-w-[320px] flex-[1_1_420px] flex-col gap-3">
-                  <p className="text-[24px] leading-[1.45] tracking-[-0.01em] text-foreground">
+                  <p className="text-[24px] leading-[1.45] tracking-[-0.01em] text-pretty text-foreground">
                     <AnswerText text={answer.text} keyFact={answer.keyFact} />
                   </p>
                   <p className="text-[15px] text-muted-foreground">
@@ -116,7 +121,7 @@ export function SearchView() {
                   </p>
                 </div>
                 {citations.length > 0 && (
-                  <div className="flex shrink-0 gap-6">
+                  <div className="df-paint flex shrink-0 gap-6" style={{ "--d": "0.35s" } as React.CSSProperties}>
                     {citations.map((c) => {
                       const doc = cited[c.documentId];
                       return (
@@ -152,8 +157,8 @@ export function SearchView() {
                   Documents
                 </h2>
                 <ul className="flex max-w-[960px] flex-col">
-                  {res.results.map((r) => (
-                    <li key={r.document.id}>
+                  {res.results.map((r, i) => (
+                    <li key={r.document.id} className="df-paint" style={{ "--d": `${0.2 + i * 0.08}s` } as React.CSSProperties}>
                       <Link
                         href={`/d/${r.document.id}?q=${encodeURIComponent(q)}`}
                         className="-mx-4 flex items-start gap-6 rounded-xl p-4 outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-ring"

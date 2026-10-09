@@ -4,7 +4,7 @@ import { shortDay } from "@/lib/client/format";
 import { cn } from "@/lib/utils";
 
 /** The next three dates found in documents. The one within 48 hours is in accent. */
-export function ComingUp({ entries }: { entries: TimelineEntry[] | null }) {
+export function ComingUp({ entries, hidden }: { entries: TimelineEntry[] | null; hidden?: ReadonlySet<string> }) {
   return (
     <section
       aria-label="Coming up"
@@ -20,7 +20,10 @@ export function ComingUp({ entries }: { entries: TimelineEntry[] | null }) {
           key={e.id}
           href={`/d/${e.documentId}`}
           data-date-id={e.id}
-          className="group rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className={cn(
+            "group rounded-sm outline-none transition-opacity duration-300 focus-visible:ring-2 focus-visible:ring-ring",
+            hidden?.has(e.id) && "opacity-0",
+          )}
         >
           <span className={cn("font-semibold tabular-nums", e.soon ? "text-primary" : "text-foreground")}>
             {shortDay(e.isoDate)}

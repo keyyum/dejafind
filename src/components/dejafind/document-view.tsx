@@ -89,7 +89,7 @@ export function DocumentView() {
     return (
       <>
         <SiteHeader />
-        <main className="mx-auto w-full max-w-[1320px] px-6 pt-16 sm:px-12">
+        <main id="main" className="mx-auto w-full max-w-[1320px] px-6 pt-16 sm:px-12">
           <p className="text-[19px] text-muted-foreground">This document is not in your library anymore.</p>
           <Link href="/" className="mt-4 inline-block underline underline-offset-4">Back to your documents</Link>
         </main>
@@ -112,7 +112,7 @@ export function DocumentView() {
     return (
       <>
         <SiteHeader left={back} />
-        <main className="mx-auto w-full max-w-[1320px] px-6 pt-16 sm:px-12" aria-busy />
+        <main id="main" className="mx-auto w-full max-w-[1320px] px-6 pt-16 sm:px-12" aria-busy />
       </>
     );
   }
@@ -143,7 +143,7 @@ export function DocumentView() {
   return (
     <>
       <SiteHeader left={back} />
-      <main className="mx-auto grid w-full max-w-[1320px] grid-cols-1 items-start gap-12 px-6 pt-10 pb-32 sm:px-12 lg:grid-cols-[minmax(0,1.25fr)_minmax(380px,1fr)]">
+      <main id="main" className="mx-auto grid w-full max-w-[1320px] grid-cols-1 items-start gap-12 px-6 pt-10 pb-32 sm:px-12 lg:grid-cols-[minmax(0,1.25fr)_minmax(380px,1fr)]">
         <figure className="flex flex-col gap-3 lg:sticky lg:top-8">
           {imageSrc ? (
             <Zoomable src={imageSrc} alt={doc.title} width={doc.width} height={doc.height} rounded={isScreenshot(doc)} />
@@ -167,6 +167,7 @@ export function DocumentView() {
             </p>
           ) : (
             <div className="flex flex-col gap-3">
+              <h1 className="sr-only">{doc.title}</h1>
               <label htmlFor="doc-title" className="sr-only">Title</label>
               <input
                 id="doc-title"
@@ -244,7 +245,7 @@ export function DocumentView() {
               <h2 id="text-heading" className="text-[17px] font-medium text-muted-foreground">Text it read</h2>
               <div
                 tabIndex={0}
-                className="max-h-[300px] overflow-auto rounded-xl border border-hairline bg-white px-5 py-4 text-[16px] leading-relaxed whitespace-pre-wrap text-ink-soft outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="df-paint max-h-[300px] overflow-auto rounded-xl border border-hairline bg-white px-5 py-4 text-[16px] leading-relaxed whitespace-pre-wrap text-ink-soft outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <Highlight text={doc.text} spans={spans} />
               </div>
