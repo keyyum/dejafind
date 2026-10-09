@@ -1,11 +1,12 @@
 import { execFile } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { readFile, readdir, unlink } from "node:fs/promises";
+import { readFile, readdir, unlink, writeFile } from "node:fs/promises";
 import { extname, join } from "node:path";
 import { promisify } from "node:util";
 import sharp from "sharp";
 import { derivedDir } from "@/server/db";
 import type { DocumentRow } from "@/server/documents";
+import { detectAndWarpQuad } from "@/server/quad";
 
 const execFileAsync = promisify(execFile);
 const PDFTOPPM_BIN = "/opt/homebrew/bin/pdftoppm";
@@ -55,17 +56,29 @@ export async function generateThumbnail(row: DocumentRow): Promise<ThumbResult> 
 }
 
 /**
- * Photos only: trim the surrounding background and normalise contrast/levels.
- * This is the contract's "plain crop fallback" path — full document-quad
- * perspective warp (opencv) is cut for time; trim+normalise still flattens most
- * phone photos of a slide or whiteboard shot close to square-on. Screenshots
+ * Photos only: document-quad detection + perspective warp (opencv contour find on
+ * Canny edges, 4-point approxPolyDP, getPerspectiveTransform/warpPerspective), with
+ * a plain trim + normalise fallback when no confident quad is found. Screenshots
  * are left untouched (clean_path stays null). Step 8.
  */
 export async function generateCleanImage(row: DocumentRow): Promise<CleanResult | null> {
   if (row.kind !== "image" || !isPhoto(row)) return null;
 
-  const buffer = await readFile(row.path);
+  const raw = await readFile(row.path);
+  const oriented = await sharp(raw).rotate().toBuffer();
   const outPath = join(derivedDir(), `${row.id}-clean.jpg`);
-  await sharp(buffer).rotate().trim().normalise().jpeg({ quality: 90 }).toFile(outPath);
+
+  let warped: Buffer | null = null;
+  try {
+    warped = await detectAndWarpQuad(oriented);
+  } catch (err) {
+    console.error(`[clean] quad detection failed for ${row.id}, falling back to trim`, err);
+  }
+
+  if (warped) {
+    await writeFile(outPath, warped);
+  } else {
+    await sharp(oriented).trim().normalise().jpeg({ quality: 90 }).toFile(outPath);
+  }
   return { cleanPath: outPath };
 }
