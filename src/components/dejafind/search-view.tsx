@@ -125,7 +125,7 @@ export function SearchView() {
                     <AnswerText text={answer.text} keyFact={answer.keyFact} />
                   </p>
                   <p className="text-[15px] text-muted-foreground">
-                    From {docCount} of your {docCount === 1 ? "document" : "documents"}
+                    {docCount === 1 ? "From one of your documents" : `From ${docCount} of your documents`}
                   </p>
                 </div>
                 {citations.length > 0 && (

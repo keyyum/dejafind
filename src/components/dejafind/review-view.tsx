@@ -66,7 +66,7 @@ function ReviewRun({ subjectId }: { subjectId: string }) {
             <header className="flex flex-col gap-2">
               <h1 className="text-[34px] leading-tight font-semibold tracking-[-0.02em]">{data.subjectName} reviewer</h1>
               <p className="text-[16px] text-muted-foreground tabular-nums">
-                {data.lines.length} lines from {sourceCount} of your {sourceCount === 1 ? "document" : "documents"} · written on this laptop in {seconds(data.tookMs)}
+                {data.lines.length} {data.lines.length === 1 ? "line" : "lines"} from {sourceCount === 1 ? "one of your documents" : `${sourceCount} of your documents`} · written on this laptop in {seconds(data.tookMs)}
               </p>
             </header>
             {data.lines.length === 0 ? (
