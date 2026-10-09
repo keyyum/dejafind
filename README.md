@@ -19,7 +19,9 @@ AppBuildersPH Hackathon 2026 entry. Theme: Local AI.
 
 | Library | Document view |
 |---|---|
-| ![Library: documents filed by subject, with the Coming up strip](docs/screenshots/library.png) | ![Document view: the screenshot beside exactly what was read, its subject, and its date](docs/screenshots/document-view.png) |
+| ![Library: documents filed by subject, with the Coming up strip](docs/screenshots/library.png) | ![Document view: the screenshot beside what was read, its subject, and its date](docs/screenshots/document-view.png) |
+| **Schedule** | **Ask** |
+| ![Schedule: the week from the confirmed timetable](docs/screenshots/schedule.png) | ![Ask: a question answered from your documents, with the source](docs/screenshots/ask.png) |
 
 ## Why local AI
 
