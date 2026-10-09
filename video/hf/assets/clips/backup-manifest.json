@@ -6,7 +6,7 @@
   },
   {
     "name": "b2-schedule",
-    "seconds": 10.38,
+    "seconds": 10.35,
     "cuts": 1
   },
   {
@@ -16,12 +16,12 @@
   },
   {
     "name": "b4-snap",
-    "seconds": 13.74,
+    "seconds": 13.89,
     "cuts": 1
   },
   {
     "name": "b5-find",
-    "seconds": 14.83,
+    "seconds": 14.86,
     "cuts": 2
   },
   {
@@ -31,7 +31,7 @@
   },
   {
     "name": "b7-quiz",
-    "seconds": 10.51,
+    "seconds": 10.49,
     "cuts": 0
   }
 ]

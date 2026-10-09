@@ -11,7 +11,7 @@ AppBuildersPH Hackathon 2026 entry. Theme: Local AI.
 ## Demo
 
 - **60-second video:** [`video/dejafind-demo.mp4`](video/dejafind-demo.mp4), recorded from the real app on this laptop (no mockups) and cut in HyperFrames. The waits for the local models are cut for time, and the video marks each cut.
-- **90-second stage backup:** [`video/dejafind-backup.mp4`](video/dejafind-backup.mp4), the live demo script end to end, full screen, with captions.
+- **82-second stage backup:** [`video/dejafind-backup.mp4`](video/dejafind-backup.mp4), the live demo script end to end, full screen, with captions.
 - **Pitch deck:** open [`pitch/index.html`](pitch/index.html) in a browser. Works offline from `file://`. → or space for next, ← for back, F for fullscreen.
 
 ## Screenshots
