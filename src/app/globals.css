@@ -196,9 +196,60 @@
     @apply font-sans;
   }
 }
-/* DéjàFind type: Fraunces for headings, Figtree for body, JetBrains Mono for citations and the status pill. */
+/* DéjàFind: one typeface (Figtree), JetBrains Mono only for numbers in the status panel. */
 :root {
   --font-sans: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-fraunces), ui-serif, Georgia, serif;
   --font-mono: var(--font-jetbrains), ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Paper white page, near-black ink, grey chrome, one terracotta accent. */
+  --background: #fcfcfa;
+  --foreground: #1f1f1d;
+  --ink-soft: #4a4a46;
+  --muted-foreground: #6b6b65;
+  --faint: #8e8e87;
+  --hairline: #ececea;
+  --border: #e3e3df;
+  --primary: #c2410c;
+  --ring: #c2410c;
+  --filed: #2f7d4f;
+  --wrong: #c2410c;
+  --mark: rgb(194 65 12 / 0.16);
+  --paper-shadow: 0 1px 1px rgb(31 31 29 / 0.06), 0 2px 4px rgb(31 31 29 / 0.05),
+    0 10px 24px -8px rgb(31 31 29 / 0.18);
+}
+
+@theme inline {
+  --font-sans: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, SFMono-Regular, Menlo, monospace;
+  --color-ink-soft: var(--ink-soft);
+  --color-faint: var(--faint);
+  --color-hairline: var(--hairline);
+  --color-filed: var(--filed);
+  --color-wrong: var(--wrong);
+  --color-mark: var(--mark);
+  --shadow-paper: var(--paper-shadow);
+}
+
+mark {
+  background: var(--mark);
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+/* The thin light bar that sweeps a tile while the model reads it. */
+@keyframes df-sweep {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
+.df-sweep::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 30%, rgb(255 255 255 / 0.75) 50%, transparent 70%);
+  animation: df-sweep 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .df-sweep::after { animation: none; }
 }

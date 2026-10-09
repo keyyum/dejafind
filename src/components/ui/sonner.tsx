@@ -1,44 +1,25 @@
 "use client"
 
-import { useTheme } from "next-themes"
 import { Toaster as Sonner, type ToasterProps } from "sonner"
-import { CircleCheckIcon, InfoIcon, TriangleAlertIcon, OctagonXIcon, Loader2Icon } from "lucide-react"
 
+/** The filing snackbar: dark, bottom-center, quiet. */
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme()
-
   return (
     <Sonner
-      theme={theme as ToasterProps["theme"]}
+      theme="light"
+      position="bottom-center"
+      duration={6000}
+      offset={28}
       className="toaster group"
-      icons={{
-        success: (
-          <CircleCheckIcon className="size-4" />
-        ),
-        info: (
-          <InfoIcon className="size-4" />
-        ),
-        warning: (
-          <TriangleAlertIcon className="size-4" />
-        ),
-        error: (
-          <OctagonXIcon className="size-4" />
-        ),
-        loading: (
-          <Loader2Icon className="size-4 animate-spin" />
-        ),
-      }}
-      style={
-        {
-          "--normal-bg": "var(--popover)",
-          "--normal-text": "var(--popover-foreground)",
-          "--normal-border": "var(--border)",
-          "--border-radius": "var(--radius)",
-        } as React.CSSProperties
-      }
       toastOptions={{
+        unstyled: true,
         classNames: {
-          toast: "cn-toast",
+          toast:
+            "flex items-center gap-3 rounded-full bg-foreground py-3 pr-4 pl-5 text-[15px] text-background shadow-[0_8px_24px_rgb(0_0_0/0.18)] w-max max-w-[calc(100vw-2rem)]",
+          title: "font-medium",
+          icon: "text-[#7bd49a]",
+          actionButton:
+            "ml-2 rounded-full px-3 py-1 font-semibold text-background/80 hover:text-background hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-white",
         },
       }}
       {...props}
