@@ -1,6 +1,6 @@
 import type { TimelineEntry } from "@/lib/api-types";
 import { getDb } from "@/server/db";
-import { generateThumbnail } from "@/server/clean";
+import { generateCleanImage, generateThumbnail } from "@/server/clean";
 import { resolveDates } from "@/server/dates";
 import { getDatesForDocument, getDocumentRow, rowToSummary } from "@/server/documents";
 import { emitEvent } from "@/server/events";
@@ -123,16 +123,23 @@ async function processDocument(id: string): Promise<void> {
 
     try {
       const thumb = await generateThumbnail(row);
-      if (thumb) {
-        db.prepare(`UPDATE documents SET thumb_path = ?, width = ?, height = ? WHERE id = ?`).run(
-          thumb.thumbPath,
-          thumb.width,
-          thumb.height,
-          id
-        );
-      }
+      db.prepare(`UPDATE documents SET thumb_path = ?, width = ?, height = ? WHERE id = ?`).run(
+        thumb.thumbPath,
+        thumb.width,
+        thumb.height,
+        id
+      );
     } catch (err) {
       console.error(`[pipeline] thumbnail failed for ${id}`, err);
+    }
+
+    try {
+      const clean = await generateCleanImage(row);
+      if (clean) {
+        db.prepare(`UPDATE documents SET clean_path = ? WHERE id = ?`).run(clean.cleanPath, id);
+      }
+    } catch (err) {
+      console.error(`[pipeline] clean image failed for ${id}`, err);
     }
 
     db.prepare(`UPDATE documents SET status = 'done', filed_at = ? WHERE id = ?`).run(

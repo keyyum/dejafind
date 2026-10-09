@@ -1,8 +1,14 @@
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
+import { execFile } from "node:child_process";
+import { randomUUID } from "node:crypto";
+import { readFile, readdir, unlink } from "node:fs/promises";
+import { extname, join } from "node:path";
+import { promisify } from "node:util";
 import sharp from "sharp";
 import { derivedDir } from "@/server/db";
 import type { DocumentRow } from "@/server/documents";
+
+const execFileAsync = promisify(execFile);
+const PDFTOPPM_BIN = "/opt/homebrew/bin/pdftoppm";
 
 export interface ThumbResult {
   thumbPath: string;
@@ -10,21 +16,56 @@ export interface ThumbResult {
   height: number;
 }
 
-/**
- * Minimal thumbnail for steps 1-5 so the UI has something to render: resize, keep
- * aspect ratio, no perspective warp yet. Step 8 replaces this with quad detection,
- * warp, and background clean for photos, plus a pdftoppm-rendered thumb for PDFs.
- */
-export async function generateThumbnail(row: DocumentRow, imageBuffer?: Buffer): Promise<ThumbResult | null> {
-  if (row.kind !== "image") return null;
+export interface CleanResult {
+  cleanPath: string;
+}
 
-  const buffer = imageBuffer ?? (await readFile(row.path));
+/** Camera photos (jpg/jpeg/heic) get a crop + background clean; PNG/webp screenshots are left untouched. */
+function isPhoto(row: DocumentRow): boolean {
+  const ext = extname(row.path).toLowerCase();
+  return ext === ".jpg" || ext === ".jpeg" || ext === ".heic";
+}
+
+async function renderPdfFirstPage(pdfPath: string): Promise<Buffer> {
+  const dir = derivedDir();
+  const prefix = `pdfpage-${randomUUID()}`;
+  await execFileAsync(PDFTOPPM_BIN, ["-png", "-f", "1", "-l", "1", "-r", "150", pdfPath, join(dir, prefix)]);
+  const files = await readdir(dir);
+  const match = files.find((f) => f.startsWith(prefix) && f.endsWith(".png"));
+  if (!match) throw new Error("pdftoppm did not produce a page image");
+  const fullPath = join(dir, match);
+  const buffer = await readFile(fullPath);
+  await unlink(fullPath).catch(() => {});
+  return buffer;
+}
+
+/**
+ * Thumbnail for every document: images resize in place, PDFs render page 1 via
+ * pdftoppm first. Max 800px on the long side, real aspect ratio kept. Step 8.
+ */
+export async function generateThumbnail(row: DocumentRow): Promise<ThumbResult> {
+  const buffer = row.kind === "pdf" ? await renderPdfFirstPage(row.path) : await readFile(row.path);
   const outPath = join(derivedDir(), `${row.id}-thumb.jpg`);
-  const pipeline = sharp(buffer)
+  const { width, height } = await sharp(buffer)
     .rotate()
     .resize({ width: 800, height: 800, fit: "inside", withoutEnlargement: true })
-    .jpeg({ quality: 82 });
-
-  const { width, height } = await pipeline.toFile(outPath);
+    .jpeg({ quality: 82 })
+    .toFile(outPath);
   return { thumbPath: outPath, width: width ?? 0, height: height ?? 0 };
+}
+
+/**
+ * Photos only: trim the surrounding background and normalise contrast/levels.
+ * This is the contract's "plain crop fallback" path — full document-quad
+ * perspective warp (opencv) is cut for time; trim+normalise still flattens most
+ * phone photos of a slide or whiteboard shot close to square-on. Screenshots
+ * are left untouched (clean_path stays null). Step 8.
+ */
+export async function generateCleanImage(row: DocumentRow): Promise<CleanResult | null> {
+  if (row.kind !== "image" || !isPhoto(row)) return null;
+
+  const buffer = await readFile(row.path);
+  const outPath = join(derivedDir(), `${row.id}-clean.jpg`);
+  await sharp(buffer).rotate().trim().normalise().jpeg({ quality: 90 }).toFile(outPath);
+  return { cleanPath: outPath };
 }
