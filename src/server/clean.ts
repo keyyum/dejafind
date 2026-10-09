@@ -41,11 +41,14 @@ async function renderPdfFirstPage(pdfPath: string): Promise<Buffer> {
 }
 
 /**
- * Thumbnail for every document: images resize in place, PDFs render page 1 via
- * pdftoppm first. Max 800px on the long side, real aspect ratio kept. Step 8.
+ * Thumbnail for every document: images resize in place (from the cleaned/warped
+ * variant when one exists, so the grid shows the flat tile, not the tilted photo),
+ * PDFs render page 1 via pdftoppm first. Max 800px on the long side, real aspect
+ * ratio kept. Step 8.
  */
-export async function generateThumbnail(row: DocumentRow): Promise<ThumbResult> {
-  const buffer = row.kind === "pdf" ? await renderPdfFirstPage(row.path) : await readFile(row.path);
+export async function generateThumbnail(row: DocumentRow, cleanPath?: string | null): Promise<ThumbResult> {
+  const buffer =
+    row.kind === "pdf" ? await renderPdfFirstPage(row.path) : await readFile(cleanPath ?? row.path);
   const outPath = join(derivedDir(), `${row.id}-thumb.jpg`);
   const { width, height } = await sharp(buffer)
     .rotate()
