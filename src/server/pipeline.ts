@@ -5,6 +5,7 @@ import { resolveDates } from "@/server/dates";
 import { getDatesForDocument, getDocumentRow, rowToSummary } from "@/server/documents";
 import { emitEvent } from "@/server/events";
 import { indexDocument } from "@/server/index";
+import { schedulePrecompute } from "@/server/precompute";
 import { readDocument } from "@/server/reader";
 import { createSchedulePending, fileDocumentSubject } from "@/server/subjects";
 
@@ -158,6 +159,7 @@ async function processDocument(id: string): Promise<void> {
       const summary = rowToSummary(finalRow);
       const dates = timelineEntriesFor(id, summary.title, summary.subjectId, summary.subjectName);
       emitEvent({ type: "document.filed", document: summary, dates, newSubjects, readMs: read.readMs }, id);
+      if (summary.subjectId) schedulePrecompute(summary.subjectId);
     }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
