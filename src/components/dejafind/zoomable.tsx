@@ -1,14 +1,16 @@
 "use client";
 /* eslint-disable @next/next/no-img-element -- local originals at full size */
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import type { WordsResponse } from "@/lib/api-types";
 import { cn } from "@/lib/utils";
 
+export type PageMode = "fit" | "actual";
+
 /**
- * The document image, large. Click to zoom in at the pointer, wheel to change zoom, move to pan.
- * With word boxes, a click on a word calls `onWordTap` instead of zooming (the Lens tap), and
- * `lit` outlines those words.
+ * The document image, static. "fit" shows the whole page in the column; "actual" shows it at
+ * its real pixel size in a scrolling frame. With word boxes, clicking a word calls `onWordTap`
+ * (the Lens tap) and `lit` outlines words; the text lines are the keyboard route to the same.
  */
 export function Zoomable({
   src,
@@ -16,6 +18,7 @@ export function Zoomable({
   width,
   height,
   rounded,
+  mode = "fit",
   words,
   lit,
   onWordTap,
@@ -25,32 +28,13 @@ export function Zoomable({
   width: number;
   height: number;
   rounded?: boolean;
+  mode?: PageMode;
   words?: WordsResponse | null;
   lit?: ReadonlySet<number>;
   onWordTap?: (index: number) => void;
 }) {
-  const box = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(1);
-  const [origin, setOrigin] = useState("50% 50%");
-
-  const originAt = (clientX: number, clientY: number) => {
-    const r = box.current?.getBoundingClientRect();
-    if (!r) return;
-    setOrigin(`${((clientX - r.left) / r.width) * 100}% ${((clientY - r.top) / r.height) * 100}%`);
-  };
-
-  useEffect(() => {
-    const el = box.current;
-    if (!el) return;
-    const onWheel = (e: WheelEvent) => {
-      if (scale === 1 && e.deltaY > 0) return;
-      e.preventDefault();
-      originAt(e.clientX, e.clientY);
-      setScale((s) => Math.min(4, Math.max(1, s * (e.deltaY < 0 ? 1.15 : 1 / 1.15))));
-    };
-    el.addEventListener("wheel", onWheel, { passive: false });
-    return () => el.removeEventListener("wheel", onWheel);
-  }, [scale]);
+  const [natural, setNatural] = useState<{ w: number; h: number } | null>(null);
+  const ratio = (width || 4) / (height || 3);
 
   /** Index of the word under the pointer, in the image's own pixels, or -1. */
   const wordAt = (target: HTMLElement, clientX: number, clientY: number): number => {
@@ -64,60 +48,65 @@ export function Zoomable({
     );
   };
 
+  const page = (
+    <span
+      className="relative block"
+      style={mode === "actual" && natural ? { width: natural.w, height: natural.h } : { width: "100%", height: "100%" }}
+      onClick={(e) => {
+        const hit = onWordTap ? wordAt(e.currentTarget, e.clientX, e.clientY) : -1;
+        if (hit >= 0) onWordTap?.(hit);
+      }}
+    >
+      <img
+        src={src}
+        alt={alt}
+        draggable={false}
+        onLoad={(e) => setNatural({ w: e.currentTarget.naturalWidth, h: e.currentTarget.naturalHeight })}
+        className="size-full object-contain"
+      />
+      {words && words.words.length > 0 && (
+        <span aria-hidden className="absolute inset-0">
+          {words.words.map((w, i) => (
+            <span
+              key={i}
+              className={cn(
+                "absolute cursor-pointer rounded-[3px] transition-colors duration-200",
+                lit?.has(i) ? "bg-[rgb(194_65_12/0.22)] ring-2 ring-primary" : "hover:bg-[rgb(194_65_12/0.12)]",
+              )}
+              style={{
+                left: `${(w.x / words.width) * 100}%`,
+                top: `${(w.y / words.height) * 100}%`,
+                width: `${(w.width / words.width) * 100}%`,
+                height: `${(w.height / words.height) * 100}%`,
+              }}
+            />
+          ))}
+        </span>
+      )}
+    </span>
+  );
+
+  if (mode === "actual") {
+    return (
+      <div
+        tabIndex={0}
+        aria-label={`${alt}, actual size. Scroll to move around.`}
+        className={cn(
+          "max-h-[80vh] w-full overflow-auto overscroll-contain bg-white shadow-paper outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          rounded ? "rounded-2xl" : "rounded-[3px]",
+        )}
+      >
+        {page}
+      </div>
+    );
+  }
+
   return (
     <div
-      ref={box}
       className={cn("relative w-full overflow-hidden bg-white shadow-paper", rounded ? "rounded-2xl" : "rounded-[3px]")}
-      style={{
-        aspectRatio: `${width || 4} / ${height || 3}`,
-        maxWidth: `calc(80vh * ${(width || 4) / (height || 3)})`,
-      }}
-      onPointerMove={(e) => scale > 1 && originAt(e.clientX, e.clientY)}
+      style={{ aspectRatio: `${width || 4} / ${height || 3}`, maxWidth: `calc(80vh * ${ratio})` }}
     >
-      <button
-        type="button"
-        aria-label={scale > 1 ? "Zoom out" : "Zoom in"}
-        className={cn(
-          "block size-full outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
-          scale > 1 ? "cursor-zoom-out" : "cursor-zoom-in",
-        )}
-        onClick={(e) => {
-          const inner = e.currentTarget.firstElementChild as HTMLElement | null;
-          const hit = inner && onWordTap ? wordAt(inner, e.clientX, e.clientY) : -1;
-          if (hit >= 0) {
-            onWordTap?.(hit);
-            return;
-          }
-          originAt(e.clientX, e.clientY);
-          setScale((s) => (s > 1 ? 1 : 2.2));
-        }}
-      >
-        <span
-          className="relative block size-full transition-transform duration-200 ease-out motion-reduce:transition-none"
-          style={{ transform: `scale(${scale})`, transformOrigin: origin }}
-        >
-          <img src={src} alt={alt} draggable={false} className="size-full object-contain" />
-          {words && words.words.length > 0 && (
-            <span aria-hidden className="absolute inset-0">
-              {words.words.map((w, i) => (
-                <span
-                  key={i}
-                  className={cn(
-                    "absolute cursor-pointer rounded-[3px] transition-colors duration-200",
-                    lit?.has(i) ? "bg-[rgb(194_65_12/0.22)] ring-2 ring-primary" : "hover:bg-[rgb(194_65_12/0.12)]",
-                  )}
-                  style={{
-                    left: `${(w.x / words.width) * 100}%`,
-                    top: `${(w.y / words.height) * 100}%`,
-                    width: `${(w.width / words.width) * 100}%`,
-                    height: `${(w.height / words.height) * 100}%`,
-                  }}
-                />
-              ))}
-            </span>
-          )}
-        </span>
-      </button>
+      {page}
     </div>
   );
 }

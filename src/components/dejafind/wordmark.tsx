@@ -1,4 +1,4 @@
-/** The DéjàFind mark (from public/brand/mark.svg) beside the word set in Figtree 600. */
+/** The DéjàFind mark (path copied from public/brand/mark.svg; keep in sync) beside the word set in Figtree 600. */
 export function Wordmark() {
   return (
     <span className="inline-flex items-center gap-1.5">
@@ -7,7 +7,7 @@ export function Wordmark() {
           fillRule="evenodd"
           clipRule="evenodd"
           fill="currentColor"
-          d="M18 8L36 8L44 22L50 14L50 52A4 4 0 0 1 46 56L18 56A4 4 0 0 1 14 52L14 12A4 4 0 0 1 18 8Z M23.5 36H40.5A2.5 2.5 0 0 1 43 38.5A2.5 2.5 0 0 1 40.5 41H23.5A2.5 2.5 0 0 1 21 38.5A2.5 2.5 0 0 1 23.5 36Z"
+          d="M18 8H42L24 28L36 21L50 22V52A4 4 0 0 1 46 56H18A4 4 0 0 1 14 52V12A4 4 0 0 1 18 8Z M23.5 36H40.5A2.5 2.5 0 0 1 43 38.5A2.5 2.5 0 0 1 40.5 41H23.5A2.5 2.5 0 0 1 21 38.5A2.5 2.5 0 0 1 23.5 36Z"
         />
       </svg>
       <span translate="no" className="text-[22px] font-semibold tracking-[-0.02em]">DéjàFind</span>
