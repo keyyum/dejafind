@@ -3,7 +3,7 @@ import { promisify } from "node:util";
 import ollama from "ollama";
 import type { ModelInfo, StatusResponse } from "@/lib/api-types";
 import { getDb } from "@/server/db";
-import { requestsOut } from "@/server/net-counter";
+import { lastOutbound, requestsOut } from "@/server/net-counter";
 import { watchedFolders } from "@/server/watcher";
 
 const execFileAsync = promisify(execFile);
@@ -73,7 +73,12 @@ async function machineDescription(): Promise<string> {
   }
 }
 
-export async function getStatus(): Promise<StatusResponse> {
+/**
+ * Superset of StatusResponse: `lastOutbound` is a debugging field (hostnames behind
+ * a nonzero requestsOut) requested by the orchestrator but not yet in api-types.ts,
+ * which core does not edit. Report it as a contract field request in STATUS.md.
+ */
+export async function getStatus(): Promise<StatusResponse & { lastOutbound: string[] }> {
   const db = getDb();
   const { reachable, models } = await modelInfos();
 
@@ -94,5 +99,6 @@ export async function getStatus(): Promise<StatusResponse> {
     watching: watchedFolders(),
     machine: await machineDescription(),
     startedAt: startedAt(),
+    lastOutbound: lastOutbound(),
   };
 }

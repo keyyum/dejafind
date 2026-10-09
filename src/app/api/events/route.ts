@@ -5,19 +5,37 @@ export async function GET() {
   let unsubscribe: (() => void) | null = null;
   let heartbeat: ReturnType<typeof setInterval> | null = null;
 
+  // A disconnected browser tab can close the controller slightly before `cancel()`
+  // unregisters this listener/timer; enqueue on a closed controller throws
+  // synchronously, which (for the timer especially) would otherwise be an uncaught
+  // exception that kills the whole dev server. Always catch and let cancel() clean up.
+  const closeStream = () => {
+    unsubscribe?.();
+    unsubscribe = null;
+    if (heartbeat) clearInterval(heartbeat);
+    heartbeat = null;
+  };
+
   const stream = new ReadableStream({
     start(controller) {
       unsubscribe = onEvent((event) => {
-        controller.enqueue(encoder.encode(`event: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`));
+        try {
+          controller.enqueue(encoder.encode(`event: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`));
+        } catch {
+          closeStream();
+        }
       });
 
       heartbeat = setInterval(() => {
-        controller.enqueue(encoder.encode(`: heartbeat\n\n`));
+        try {
+          controller.enqueue(encoder.encode(`: heartbeat\n\n`));
+        } catch {
+          closeStream();
+        }
       }, 15_000);
     },
     cancel() {
-      unsubscribe?.();
-      if (heartbeat) clearInterval(heartbeat);
+      closeStream();
     },
   });
 

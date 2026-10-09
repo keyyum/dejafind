@@ -46,7 +46,8 @@ Keep this section current. Every model, framework, and library is listed the mom
 - Fonts via Google Fonts: Fraunces, Figtree, JetBrains Mono (OFL)
 - Ollama (local model server) and the `ollama` JS client
 - `chokidar` (folder watching), `better-sqlite3` + `sqlite-vec` + SQLite FTS5 (storage and search), `pdf-parse` (PDF text), `chrono-node` (date cross-check)
-- `sharp` (thumbnails and image cleanup; installed transitively by Next.js, imported directly by `src/server/clean.ts`)
+- `sharp` (thumbnails, downscaling, image cleanup)
+- `@techstark/opencv-js` (OpenCV compiled to WebAssembly, Apache 2.0): document edge detection and perspective warp for photographed slides and whiteboards, Node only
 
 **Cloud services and APIs:** none in the product. Next.js's own anonymous build telemetry is disabled on the demo machine with `npx next telemetry disable` so the outbound-request counter reads zero.
 

@@ -18,7 +18,15 @@ export function getEventBus(): EventEmitter {
 
 /** Emits to live SSE subscribers and persists a row in `events` for history. */
 export function emitEvent(event: DejaEvent, documentId?: string | null) {
-  getEventBus().emit("event", event);
+  try {
+    // EventEmitter.emit() runs listeners synchronously and rethrows whatever they
+    // throw (e.g. an SSE route writing to a controller a disconnected browser tab
+    // already closed). A caller like the watcher fires this without awaiting, so an
+    // uncaught throw here becomes an unhandled rejection that can kill the process.
+    getEventBus().emit("event", event);
+  } catch (err) {
+    console.error("[events] a listener threw while handling", event.type, err);
+  }
   try {
     getDb()
       .prepare(
