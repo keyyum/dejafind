@@ -4,49 +4,41 @@ Read `docs/PRODUCT.md` first. This file is the contract for the UI worker. Invok
 
 ## Art direction
 
-Calm notebook, not a dashboard. Think Notion page meets Google Photos library. White page, near-black ink, grey for everything secondary, one accent (the theme's terracotta) used only for the nearest deadline. One typeface, Figtree, no serif. No cards with buttons, no badges, no shadows except the Ask bar. Nothing under 14px; body 16, page title 40. The user should feel like they opened their own notes, not an app.
+Google Photos for documents, with a Spotlight search bar. White page, near-black ink, grey for everything secondary, one accent (the theme's terracotta) used only for the nearest deadline and highlighted matches. One typeface, Figtree. Documents are the biggest thing on every screen; chrome is small and grey. No cards with buttons, no sidebar, no dashboard. Nothing under 14px; body 16. It must read on a projector.
 
-Mockup to match: https://claude.ai/artifact/Ctv1CrDG8dSP85eWKCH3Tt, artboards "1 · Today", "2 · Subject page", "3 · Library", the shared Ask and Quiz boards for those screens.
+Mockup: https://claude.ai/artifact/Ctv1CrDG8dSP85eWKCH3Tt, artboards "1 · Library", "2 · Search", "3 · Document", "4 · Quiz".
 
-## Views
+## Four screens
 
-**Sidebar, every screen.** Light grey, 240px, collapses to a top row at phone width. Items: DéjàFind wordmark with a small green dot ("On this laptop"), Ask or search, Today, Library (count), Schedule, then a Subjects heading and one plain row per subject with its capture count, Other last in grey. Footer line: "Watching Desktop, Downloads. Nothing leaves this laptop."
+**1. Library (home).** Top-left wordmark, top-right three grey words with a pulsing green dot: "On this laptop · nothing sent". Then one big search bar, pill shaped, placeholder "Search inside your documents, or ask". Under it, subject names as plain text filters with counts (All, Biology, Calculus, …, Other in lighter grey, and Schedule), auto-created, plus a quiet "Quiz me" text link at the right that quizzes the current filter. Then one thin **Coming up** strip: the next three dates found in documents, each linking to its document, the one within 48 hours in accent. Then the grid: documents grouped by day, 4 across, 4:3 thumbnails of the real image or PDF first page, caption under each: title, then subject in grey. A document still being read shows a spinner tile and "Reading…". A newly filed document carries "filed under Biology" in green under its caption for one minute.
 
-**0. Today (home).** The app opens here. One column, max 760px, four short sections, nothing configurable: **Classes** (today's classes from the confirmed schedule as one line, each linking to its subject), **Coming up** (next three deadlines as a checklist, source in grey on the right, only the one within 48 hours colored), **Just filed** (last six captures as small thumbnails with titles, screenshots and PDFs together, "See all" to Library), **Study next** (one suggestion with a Quiz me button, e.g. "Biology quiz is Friday. Five questions from this week's notes."). No streaks, stats, charts, banners, or onboarding checklists. During the demo the new screenshot appears in Just filed and in Coming up on this one screen without any click.
+**2. Search results.** Same bar at the top, query inside it. If the query reads as a question, an answer block first: plain 24px text with the key fact bold, "From 2 of your documents" in grey, and the cited documents as thumbnails beside it with the used lines highlighted. Then "Documents" as a list: 96px thumbnail, title, the best matching snippet with the match highlighted, subject and date in grey. Filters by subject stay visible. Zero results: "Nothing in your documents matches that." in grey.
 
-**1. Subject page.** Reached from the sidebar or from Today. One column, max 760px. Small grey line (teacher, section, count), the subject name at 40px, then two small buttons: Quiz me (dark) and Ask about this subject (outlined). Then "Coming up" as a checklist with the source in grey on the right. Then captures grouped "This week", "Last week", older: each row a 56px thumbnail, title, one-line summary in grey, type and time in lighter grey. A capture still being read shows a spinner thumbnail and "Reading…". Clicking a row opens the capture: full image left, extracted text right, tags and dates below, "Move to…" subject picker.
+**3. Document.** Image or PDF page large on the left, zoomable. Right column, in this order: title (editable), one-line summary, subject with a small change menu, tags, dates found (each with "on Coming up" or "ignored" and a one-tap toggle), then the full extracted text in a scrolling box with matches highlighted when arriving from search. Footer actions as text links: Quiz me on this, Find similar, Open original file, Delete. This screen is the proof of the product; make the extracted text and the dates visibly come from the image.
 
-**2. Library.** A's photo grid: captures grouped by day, 4 across, 4:3 thumbnails, caption under each with subject in grey. A row of subject names across the top filters it. A newly filed capture appears at the top with "filed under Biology" under it for one minute.
-
-**3. Ask.** The bar lives at the top of the sidebar and as ⌘K. Submitting opens the Ask view: the answer as plain 26px text with the key fact in bold, one grey line "From 2 of your notes, answered on this laptop in 2.1 s", the source capture beside it with the used spans highlighted, two text links (Quiz me on this, Show in Biology). It is a conversation: follow-up questions stack downward, questions in grey, answers in black, source thumbnail beside any answer that has one; the input moves to the bottom once a conversation is running. A small "Explain" toggle at the top right, off by default; when on, answers that use general knowledge carry a grey label "Not from your notes". No avatars, no bubbles, no bot name. "Not in your notes." in grey, never red.
-
-**4. Quiz.** Back link, "2 of 5", a 2px progress line. One question at 30px, four quiet rows as real buttons. On answer: correct row turns green-bordered, a wrong pick turns orange-bordered, others fade. Below a rule: verdict, one-line explanation, "From Lecture 5" link, the source thumbnail, Next.
-
-**Schedule.** A simple week grid built from the confirmed timetable, each cell linking to its subject. Reached from the sidebar.
+**4. Quiz.** Back link, "2 of 5", a 2px progress line. One question at 30px, four quiet rows as real buttons. On answer: correct row turns green-bordered, a wrong pick orange-bordered, others fade. Below a rule: verdict, one-line explanation, the source document thumbnail with a link, Next. Final screen: score, Again, Back.
 
 ## Moments, not widgets
 
-**Filing confirmation.** A small dark snackbar bottom-center for six seconds: check icon, "Screenshot filed under Biology · Oct 17 added to Coming up", Undo. This is the stage moment; polish it first.
+**Filing confirmation.** A dark snackbar bottom-center for six seconds: "Screenshot filed under Biology · Oct 17 added to Coming up", Undo. The stage moment; polish it first.
 
-**Schedule confirmation.** When a file looks like a timetable, a card at the top of the page: "This looks like a class schedule for BSCS 2-B. Is it yours?" with Use it and Not mine. Defaults to Not mine if the section differs from the confirmed one. It is the only thing the app ever asks.
+**Schedule confirmation.** When a document looks like a timetable, a card above the grid: "This looks like a class schedule for BSCS 2-B. Is it yours?" with Use it and Not mine; defaults to Not mine if the section differs from the confirmed one. The only thing the app ever asks.
 
-**Status.** Three grey words in the sidebar with a pulsing green dot: "On this laptop". Clicking opens a small panel: 0 requests out, the three model names and sizes, measured seconds per capture.
+**Status panel.** Clicking the three grey words opens a small panel: 0 requests out, the three model names and sizes, measured seconds per document on this machine.
 
 ## Already installed and verified on Tailwind 4 + React 19
 
-- shadcn (Base UI flavor, CSS variables) with the tweakcn `claude` preset applied in `src/app/globals.css`: warm off-white background, terracotta primary.
-- Fonts via `next/font`: Figtree (`font-sans`, everything), JetBrains Mono (`font-mono`, only for the status panel numbers). Fraunces is loaded but unused in this direction; do not use serif.
-- `src/components/ui/animated-list.tsx` (Magic UI) for the ingest toast stack.
-- `src/components/kibo-ui/status` for the local status pill.
-- Stock shadcn: `button`, `badge`, `card`, `command`, `dialog`, `tabs`, `sonner`, `input`, `textarea`, `radio-group`, `field`, `label`, `separator`.
-- Kibo `choicebox` was removed: it targets the Radix flavor and fails typecheck here. Quiz choices are plain large outlined `Button`s.
+- shadcn (Base UI flavor, CSS variables) with the tweakcn `claude` preset applied in `src/app/globals.css`.
+- Fonts via `next/font`: Figtree (`font-sans`, everything), JetBrains Mono (`font-mono`, only for numbers in the status panel). Fraunces is loaded but unused; do not use serif.
+- `src/components/ui/animated-list.tsx` (Magic UI) if the Library needs a live-arriving list; `src/components/kibo-ui/status` for the status dot.
+- Stock shadcn: `button`, `badge`, `card`, `command`, `dialog`, `tabs`, `sonner` (use for the snackbar), `input`, `textarea`, `radio-group`, `field`, `label`, `separator`.
 
 Install anything else only through `npx shadcn@latest add` and run `npm run typecheck` immediately after. Import animation from `motion/react`, never `framer-motion`.
 
 ## Data the UI reads
 
-The core worker exposes JSON route handlers under `/api/`: `subjects`, `subjects/[id]`, `captures/[id]`, `library`, `timeline`, `schedule`, `ask` (POST `{question, subjectId?}`), `quiz/[subjectId]`, `status`, and a server-sent events stream at `/api/events` that emits `capture.filed` for the toast. Thumbnails are served from `/api/thumb/[id]`. If an endpoint is not ready, render against the mock in `src/lib/mock.ts` and swap later. Do not block on the core.
+The core worker exposes JSON route handlers under `/api/`: `documents` (grouped by day, filter by subject), `documents/[id]`, `subjects`, `timeline`, `schedule`, `search` (POST `{q, subjectId?}` returning `{answer?, citations?, results[]}`), `quiz` (POST `{subjectId?, documentIds?}`), `status`, and a server-sent events stream at `/api/events` that emits `document.filed`. Thumbnails from `/api/thumb/[id]`, originals from `/api/file/[id]`. If an endpoint is not ready, render against the mock in `src/lib/mock.ts` and swap later. Do not block on the core.
 
 ## Not building
 
-A landing page. Dark mode. Folder trees. Cards with buttons. Settings beyond "which folders to watch". Any animation beyond the snackbar and the quiz fade. A logo that takes longer than ten minutes.
+Today or dashboard pages. Subject pages as documents. Checklists. Chat bubbles or a bot name. Folder trees. Sidebars. Dark mode. Settings beyond "which folders to watch". Any animation beyond the snackbar and the quiz fade.

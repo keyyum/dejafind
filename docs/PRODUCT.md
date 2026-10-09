@@ -14,12 +14,20 @@ Students. Only students. Not "anyone with files"; a general file finder is a sea
 
 Class materials only: photos of slides and whiteboards, handouts, GC screenshots, PDFs and slide decks from the LMS. No upload button. The app watches Screenshots, Downloads, and a drop folder. Anything that is not class material is tagged Other and left alone. That is not a feature and is not mentioned on stage.
 
+## What it is, in one breath
+
+Your screenshots, slide photos, and PDFs get understood, organized, and findable by themselves. The document is the atom. Everything else is something the app knows about a document.
+
 ## Core four for the demo
 
-1. **Snap, file, timeline.** A new photo, screenshot, or PDF is read, titled, summarized, and filed under its subject by itself. Every date found lands on one timeline with the source beside it. The home screen is Subjects, not files; open Biology and you see this week's captures, the next deadline, and a "quiz me" button.
-2. **Ask your notes.** "When's my bio quiz?" "What did sir say about mitosis?" Answers come only from your own captures, scoped to a subject or all, cite the capture, and show it. If nothing matches, it says "not in your notes". It is a conversation: follow-ups like "explain that simpler" or "what's chapter 5 about" keep the context of the last few turns. An optional **Explain** switch, off by default, lets the model add general knowledge, always labeled "not from your notes". Never call it a chatbot on stage; it is "ask your notes, and it remembers the conversation".
-3. **Summary on every capture.** Title, one-line summary, tags. IMG_4821 becomes "Bio lecture 5, cell division, quiz Oct 17".
-4. **Quiz me.** "Quiz me on Biology": five questions generated from your own captures, graded, with the source shown. This is core. It is the first thing cut if time runs out, but a study brain that does not quiz you is a folder.
+1. **It reads what you capture.** A new screenshot, photo, or PDF is read on the laptop: full text, a title, a one-line summary, tags, the subject it belongs to, and every date in it. Opening a document shows the image big and, beside it, exactly what the app understood. That screen is the proof of the product.
+2. **It organizes without you.** Subjects are created from your class schedule and from the documents themselves, and each document is filed under one. Dates found in documents go on one Coming up strip. You watch the organization happen; you never do it.
+3. **It finds anything you ever saw.** One search bar over the inside of your documents: the text it read, the meaning, and plain questions. "jollibee", "the slide with the photosynthesis equation", "when's my bio quiz" all go in the same bar. Results are the documents themselves with the matching line highlighted. When the query is a question, the answer sits above the matching documents and cites them.
+4. **Quiz me on these.** Pick a subject or a few documents and get five questions generated from them, graded, with the source document shown.
+
+## What it is not
+
+Not a notes app. Not a to-do list. Not a dashboard. Not a chatbot. The home screen is your documents, not a page about them.
 
 ## Tier 2, only after the core four and the network panel are proven (target 05:00 to 06:30)
 
@@ -51,7 +59,7 @@ On stage say "the only one we found that does all of this offline", never "the o
 
 ## Not a chatbot
 
-A chatbot waits for you to type. DéjàFind works even if you never type anything. The main screen is Subjects, with Timeline and Quiz tabs and an Ask bar. Asking is the bonus.
+A chatbot waits for you to type. DéjàFind works even if you never type anything. The main screen is your documents. Asking is one thing the search bar can do.
 
 ## Non-acad files
 
