@@ -48,6 +48,7 @@ Keep this section current. Every model, framework, and library is listed the mom
 - `chokidar` (folder watching), `better-sqlite3` + `sqlite-vec` + SQLite FTS5 (storage and search), `pdf-parse` (PDF text), `chrono-node` (date cross-check)
 - `sharp` (thumbnails, downscaling, image cleanup)
 - `@techstark/opencv-js` (OpenCV compiled to WebAssembly, Apache 2.0): document edge detection and perspective warp for photographed slides and whiteboards, Node only
+- Apple Vision framework (macOS, on-device OCR, no network): word boxes for the Lens tap, via `scripts/ocr-words.swift` compiled on first use with `swiftc`; the compiled binary is gitignored
 
 **Cloud services and APIs:** none in the product. Next.js's own anonymous build telemetry is disabled on the demo machine with `npx next telemetry disable` so the outbound-request counter reads zero.
 
