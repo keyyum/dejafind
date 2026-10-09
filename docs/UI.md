@@ -4,7 +4,31 @@ Read `docs/PRODUCT.md` first. This file is the contract for the UI worker. Invok
 
 ## Art direction
 
-A warm paper desk, not a dashboard. Off-white page, near-black ink, one accent (the installed theme's terracotta primary). Big serif subject names, small mono deadlines. Flat bordered cards, no shadows, no gradients. Citations drawn as mono footnote chips. No sidebar: a slim top bar. Animate only two things: the ingest toast sliding in, and the quiz question transition. Light theme only. Nothing under 14px; body 16, headings 24 and 32. It must read from the back of a mall event space on a projector.
+Calm notebook, not a dashboard. Think Notion page meets Google Photos library. White page, near-black ink, grey for everything secondary, one accent (the theme's terracotta) used only for the nearest deadline. One typeface, Figtree, no serif. No cards with buttons, no badges, no shadows except the Ask bar. Nothing under 14px; body 16, page title 40. The user should feel like they opened their own notes, not an app.
+
+Mockup to match: https://claude.ai/artifact/Ctv1CrDG8dSP85eWKCH3Tt, artboard "B · Notebook" for the home, "A · Stream" for the Library grid, the shared Ask and Quiz boards for those screens.
+
+## Views
+
+**Sidebar, every screen.** Light grey, 240px, collapses to a top row at phone width. Items: DéjàFind wordmark with a small green dot ("On this laptop"), Ask or search, Coming up (count), Library, Schedule, then a Subjects heading and one plain row per subject with its capture count, Other last in grey. Footer line: "Watching Desktop, Downloads. Nothing leaves this laptop."
+
+**1. Subject page (home).** The app opens on the subject with the nearest deadline. One column, max 760px. Small grey line (teacher, section, count), the subject name at 40px, then two small buttons: Quiz me (dark) and Ask about this subject (outlined). Then "Coming up" as a checklist with the source in grey on the right. Then captures grouped "This week", "Last week", older: each row a 56px thumbnail, title, one-line summary in grey, type and time in lighter grey. A capture still being read shows a spinner thumbnail and "Reading…". Clicking a row opens the capture: full image left, extracted text right, tags and dates below, "Move to…" subject picker.
+
+**2. Library.** A's photo grid: captures grouped by day, 4 across, 4:3 thumbnails, caption under each with subject in grey. A row of subject names across the top filters it. A newly filed capture appears at the top with "filed under Biology" under it for one minute.
+
+**3. Ask.** The bar lives at the top of the sidebar and as ⌘K. Submitting opens the Ask view: the answer as plain 26px text with the key fact in bold, one grey line "From 2 of your notes, answered on this laptop in 2.1 s", the source capture beside it with the used spans highlighted, two text links (Quiz me on this, Show in Biology). Earlier answers below in grey. "Not in your notes." in grey, never red.
+
+**4. Quiz.** Back link, "2 of 5", a 2px progress line. One question at 30px, four quiet rows as real buttons. On answer: correct row turns green-bordered, a wrong pick turns orange-bordered, others fade. Below a rule: verdict, one-line explanation, "From Lecture 5" link, the source thumbnail, Next.
+
+**Schedule.** A simple week grid built from the confirmed timetable, each cell linking to its subject. Reached from the sidebar.
+
+## Moments, not widgets
+
+**Filing confirmation.** A small dark snackbar bottom-center for six seconds: check icon, "Screenshot filed under Biology · Oct 17 added to Coming up", Undo. This is the stage moment; polish it first.
+
+**Schedule confirmation.** When a file looks like a timetable, a card at the top of the page: "This looks like a class schedule for BSCS 2-B. Is it yours?" with Use it and Not mine. Defaults to Not mine if the section differs from the confirmed one. It is the only thing the app ever asks.
+
+**Status.** Three grey words in the sidebar with a pulsing green dot: "On this laptop". Clicking opens a small panel: 0 requests out, the three model names and sizes, measured seconds per capture.
 
 ## Already installed and verified on Tailwind 4 + React 19
 
@@ -17,30 +41,10 @@ A warm paper desk, not a dashboard. Off-white page, near-black ink, one accent (
 
 Install anything else only through `npx shadcn@latest add` and run `npm run typecheck` immediately after. Import animation from `motion/react`, never `framer-motion`.
 
-## Screens
-
-**Top bar, every screen.** Left: "DéjàFind" in serif. Center: the Ask bar (shadcn `command` styled as a single input, placeholder "Ask your notes… when's my bio quiz?"). Right: the status pill: a pulsing dot, "Local · 0 requests out · 3 models warm", mono. Clicking it opens a dialog listing model names, sizes, and the measured seconds per capture on this machine.
-
-**1. Subjects home (`/`).** A grid of subject cards, 3 across at desktop. Each card: serif subject name (32px), capture count, the next deadline in mono with its date, and a "Quiz me" button. "Other" is last, visually quieter, no quiz button. Empty state: one sentence, "Drop a slide photo in the watch folder or take a screenshot."
-
-**2. Subject view (`/subjects/[id]`).** Two columns. Left: captures, newest first, each row a 96px thumbnail, title, one-line summary, mono date. Rows in `status = queued` show a small spinner and "Reading…". Click opens a dialog: the full image on the left, extracted text on the right, tags and dates below. Right column: the next three deadlines for this subject, and "Quiz me".
-
-**3. Timeline (`/timeline`).** One vertical list grouped by date. Each row: 64px thumbnail, label, subject badge. Dates with `status = review` carry an amber "check this" badge and a one-tap confirm. Top-right: "Add to calendar" (only if tier 2 ships; hide otherwise).
-
-**4. Ask (inline, not a page).** Typing in the top bar and pressing Enter slides an answer panel down beneath the bar: the answer text, then a row of citation chips (mono, `#id · title`) each showing the thumbnail on hover and opening the capture dialog on click. "Not in your notes." renders as a quiet grey card, never red. A subject scope selector sits at the left of the bar, default "All subjects".
-
-**5. Quiz (`/quiz/[subjectId]`).** Full width, no chrome except a thin progress line. One centered serif question (28px). Four large outlined buttons. On answer: the chosen button turns green or red, a one-line explanation appears, and the source capture thumbnail with its title. "Next" advances with a quick fade. Final screen: score out of five, "Again" and "Back to Biology".
-
-## The two hero components
-
-**Ingest toast.** Bottom-right stack built on `animated-list.tsx`. Each item: thumbnail, title in serif, then two mono lines: "Filed under Biology" and "Oct 17 added to timeline". Stays six seconds. This is the moment the judges see the app work without anyone touching it; polish it before anything else on this list.
-
-**Status pill.** Always visible, always truthful. It reads a counter from the server that increments on any outbound HTTP request the Node process makes. It must say 0 for the whole demo.
-
 ## Data the UI reads
 
-The core worker exposes JSON route handlers under `/api/`: `subjects`, `subjects/[id]`, `captures/[id]`, `timeline`, `ask` (POST `{question, subjectId?}`), `quiz/[subjectId]`, `status`, and a server-sent events stream at `/api/events` that emits `capture.filed` for the toast. Thumbnails are served from `/api/thumb/[id]`. If an endpoint is not ready, render against the mock in `src/lib/mock.ts` and swap later. Do not block on the core.
+The core worker exposes JSON route handlers under `/api/`: `subjects`, `subjects/[id]`, `captures/[id]`, `library`, `timeline`, `schedule`, `ask` (POST `{question, subjectId?}`), `quiz/[subjectId]`, `status`, and a server-sent events stream at `/api/events` that emits `capture.filed` for the toast. Thumbnails are served from `/api/thumb/[id]`. If an endpoint is not ready, render against the mock in `src/lib/mock.ts` and swap later. Do not block on the core.
 
 ## Not building
 
-A landing page. Dark mode. Settings beyond "which folders to watch". Any animation not listed above. A logo that takes longer than ten minutes.
+A landing page. Dark mode. Folder trees. Cards with buttons. Settings beyond "which folders to watch". Any animation beyond the snackbar and the quiz fade. A logo that takes longer than ten minutes.
