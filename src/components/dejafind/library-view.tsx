@@ -7,9 +7,11 @@ import type {
   DocumentGroup,
   DocumentSummary,
   SubjectsResponse,
+  ScheduleResponse,
   TimelineEntry,
 } from "@/lib/api-types";
-import { getDocuments, getSubjects, getTimeline } from "@/lib/client/api";
+import { getDocuments, getSchedule, getSubjects, getTimeline } from "@/lib/client/api";
+import { downloadMarkdown, scheduleMarkdown } from "@/lib/client/markdown";
 import { monthDay } from "@/lib/client/format";
 import { useNow } from "@/hooks/use-now";
 import { DateFlight, Landing, type Flight } from "./capture-motion";
@@ -69,6 +71,17 @@ export function LibraryView() {
   const [subjects, setSubjects] = useState<SubjectsResponse | null>(null);
   const [timeline, setTimeline] = useState<TimelineEntry[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [schedule, setSchedule] = useState<ScheduleResponse | null>(null);
+  useEffect(() => {
+    if (filter !== "schedule") return;
+    let live = true;
+    void getSchedule()
+      .then((s) => live && setSchedule(s))
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, [filter]);
 
   // Landing choreography: tiles that flew in, titles still typing, date chips in the air.
   const [arrivals, setArrivals] = useState<ReadonlySet<string>>(new Set());
@@ -250,6 +263,21 @@ export function LibraryView() {
               ? "Nothing here yet. Take a screenshot, save a PDF to Downloads, or drop files on this window."
               : "No documents filed here yet."}
             </p>
+          </div>
+        )}
+
+        {filter === "schedule" && schedule && schedule.entries.length > 0 && (
+          <div className="flex flex-wrap items-baseline justify-between gap-4">
+            <p className="text-[17px] text-ink-soft">
+              Your class schedule{schedule.section ? ` for ${schedule.section}` : ""}: {schedule.entries.length} classes a week
+            </p>
+            <button
+              type="button"
+              onClick={() => downloadMarkdown(`class-schedule${schedule.section ? `-${schedule.section.toLowerCase().replace(/[^a-z0-9]+/g, "-")}` : ""}`, scheduleMarkdown(schedule.entries, schedule.section))}
+              className="rounded-sm text-ink-soft underline decoration-border decoration-2 underline-offset-[6px] outline-none hover:text-foreground hover:decoration-foreground focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              Save as .md
+            </button>
           </div>
         )}
 

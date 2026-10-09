@@ -16,6 +16,7 @@ import {
   patchDocument,
 } from "@/lib/client/api";
 import { isScreenshot, kindWord, longDay, relativeDay, seconds } from "@/lib/client/format";
+import { documentMarkdown, downloadMarkdown, slug } from "@/lib/client/markdown";
 import { cn } from "@/lib/utils";
 import { useDejaEvent } from "./events";
 import { Highlight, queryTerms, termSpans } from "./highlight";
@@ -345,6 +346,13 @@ export function DocumentView() {
             <a href={doc.fileUrl} target="_blank" rel="noreferrer" title={doc.path} className="rounded-sm text-ink-soft outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring">
               Open original file
             </a>
+            <button
+              type="button"
+              onClick={() => downloadMarkdown(slug(doc.title), documentMarkdown(doc))}
+              className="rounded-sm text-ink-soft outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              Save as .md
+            </button>
             {confirmDelete ? (
               <span className="ml-auto flex items-baseline gap-4">
                 <span className="text-muted-foreground">Delete from DéjàFind?</span>

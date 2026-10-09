@@ -171,10 +171,20 @@ function findScheduleSubjectByFamily(normalizedName: string): Subject | null {
   return null;
 }
 
+/** doc_type values that can plausibly be a school document. "pdf" only counts
+ * when the file itself is a PDF — a photo the vision model mislabeled doc_type
+ * "pdf" (e.g. a receipt) is not a school PDF. */
+const SCHOOL_LIKE_DOC_TYPES = new Set(["slide", "whiteboard", "handout", "chat", "schedule"]);
+
+function isSchoolLikeDocument(docType: string, kind: string): boolean {
+  if (SCHOOL_LIKE_DOC_TYPES.has(docType)) return true;
+  return docType === "pdf" && kind === "pdf";
+}
+
 /**
  * Filing order: reader subject match, then (when a schedule is confirmed) a fuzzy
  * family match against schedule subjects, then schedule time match, then a new
- * inferred subject, else Other.
+ * inferred subject (only for a school-like document type), else Other.
  */
 export function fileDocumentSubject(
   row: DocumentRow,
@@ -196,7 +206,7 @@ export function fileDocumentSubject(
   const scheduleMatch = matchScheduleByTime(row.captured_at);
   if (scheduleMatch) return { subjectId: scheduleMatch, newSubjects };
 
-  if (normalized) {
+  if (normalized && isSchoolLikeDocument(read.docType, row.kind)) {
     const created = createSubject(normalized, "inferred");
     newSubjects.push(created);
     return { subjectId: created.id, newSubjects };

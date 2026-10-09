@@ -15,6 +15,18 @@ Batch 2 (seven files, after "Why these four") was built to save time budget,
 so most of its files were not individually round-tripped through the live
 pipeline; the one that was (the whiteboard) is called out below.
 
+**Calendar reference (verified against October 2026, real dates — not
+model output):** Oct 9 Fri, Oct 11 Sun, Oct 13 Tue, Oct 17 Sat, Oct 19 Mon.
+Checked every file below for a stated weekday against its date after a QA
+rehearsal caught `gc-biology-quiz-oct17.png` claiming "(Friday)" for Oct 17
+(it's a Saturday — fixed, see that file's entry). Every other date mention
+across all eleven files (`jollibee-receipt.jpg` Oct 9, `physics-lab-handout.pdf`
+"Sunday, October 11", `sanaysay-wika-kultura.jpg` Oct 13, the two Oct 19
+mentions in `gc-calculus-longquiz-oct19.png` and `calc-longquiz-handout.jpg`
+which both already said "Monday", and the Oct 17 reminder in
+`whiteboard-photosynthesis.jpg` which states no weekday) matched the real
+calendar; only the one fix was needed.
+
 All four were verified against the real pipeline on this machine
 (`NEXT_PUBLIC_DEJAFIND_MOCK` unset, models already pulled: `qwen2.5vl:3b`,
 `qwen3:4b`, `nomic-embed-text`) by dropping them into `data/watch/` and
@@ -152,8 +164,14 @@ against `documents`/`dates` this time.
 
 Light Messenger-style GC screenshot, white background, same "BSCS 2-A"
 section as `gc-bio-quiz.png` (core's original, now also light-themed) —
-Ma'am Reyes moves the Biology quiz to October 17, adds a room/time follow-up
-exchange. Expected: subject Biology, date 2026-10-17.
+Ma'am Reyes moves the Biology quiz to October 17 (Saturday), adds a
+room/time follow-up exchange. Expected: subject Biology, date 2026-10-17.
+
+**Fixed after QA rehearsal:** the message originally read "October 17
+(Friday)" — Oct 17, 2026 is a Saturday, and the app's own "Coming up" chip
+says "Sat 17", so the mismatch was visible on stage. Corrected the text and
+re-rendered at the same window size; only the first bubble's line wrap
+shifted by a couple of words, everything else is pixel-identical.
 
 ### `gc-calculus-longquiz-oct19.png`
 
