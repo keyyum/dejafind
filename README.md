@@ -10,7 +10,7 @@ AppBuildersPH Hackathon 2026 entry. Theme: Local AI.
 
 ## Demo
 
-- **60-second video:** [`video/dejafind-demo.mp4`](video/dejafind-demo.mp4), recorded from the real app on this laptop (no mockups) and cut in HyperFrames. The waits for the local models are cut for time, and the video marks each cut.
+- **53-second video:** [`video/dejafind-demo.mp4`](video/dejafind-demo.mp4), recorded from the real app on this laptop (no mockups), cut in HyperFrames, narrated, with captions burned in. The waits for the local models are cut for time, and the video marks each cut.
 - **82-second stage backup:** [`video/dejafind-backup.mp4`](video/dejafind-backup.mp4), the live demo script end to end, full screen, with captions.
 - **Pitch deck:** open [`pitch/index.html`](pitch/index.html) in a browser. Works offline from `file://`. → or space for next, ← for back, F for fullscreen.
 
@@ -102,6 +102,8 @@ Keep this section current. Every model, framework, and library is listed the mom
 **Exact npm packages in `package.json`, for completeness:** `@base-ui/react`, `@tailwindcss/turbopack`, `@techstark/opencv-js`, `@types/better-sqlite3`, `@types/node`, `@types/react`, `@types/react-dom`, `better-sqlite3`, `chokidar`, `chrono-node`, `class-variance-authority`, `cmdk`, `cn`, `eslint`, `eslint-config-next`, `lucide-react`, `motion`, `next`, `next-themes`, `ollama`, `pdf-parse`, `radix-ui`, `react`, `react-dom`, `shadcn`, `sharp`, `sonner`, `sqlite-vec`, `tailwindcss`, `tw-animate-css`, `typescript`.
 
 **Demo video and pitch deck tooling (not part of the app):** HyperFrames (HeyGen's open-source HTML-to-video CLI) composites and renders `video/dejafind-demo.mp4` and `video/dejafind-backup.mp4`; the compositions in `video/hf/` load GSAP 3 (GreenSock, free standard licence) at render time. `ffmpeg` cuts the recordings. Headless Google Chrome, driven over the DevTools protocol by the scripts in `video/tools/` (no npm dependencies), records the real app; its fake-camera input is a frame made from the synthetic `whiteboard-photosynthesis.jpg`. Figtree (OFL) is copied from the app's own `next/font` build into `pitch/fonts/` and `video/hf/assets/fonts/` so the deck and video need no network. Every document shown in the video and the deck is a synthetic sample from `data/samples/demo/`.
+
+**Demo video sound (not part of the app):** the narration was generated with `edge-tts` (Microsoft's online neural text-to-speech, voice en-US-AndrewMultilingualNeural), used only to voice the promo video; the app makes no network calls. Music is "Newer Wave" by Kevin MacLeod (CC BY 4.0, credited in `docs/SUBMISSION.md`); sound effects are Kenney CC0 plus effects synthesised for the video.
 
 ## Team
 

@@ -73,3 +73,13 @@ https://github.com/keyyum/dejafind
 Upload `video/dejafind-demo.mp4` natively from the founder's account, tag Cognition, and use this one line:
 
 > DéjàFind: your screenshots, slides and PDFs, understood and findable, fully offline on a laptop. Built in 24 h for #AppBuildersPH.
+>
+> Music: Newer Wave by Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0 License. http://creativecommons.org/licenses/by/4.0/
+
+## Video credits
+
+- **Footage:** the real DéjàFind app on this laptop, recorded with headless Chrome; all documents are synthetic samples. Model waits are cut for time and each cut is labelled on screen.
+- **Edit:** HyperFrames (HeyGen), with GSAP 3.
+- **Voice:** edge-tts, Microsoft neural voice en-US-AndrewMultilingualNeural at +4%. This is an online text-to-speech service, used only to narrate the promo video; the DéjàFind app itself makes no network calls.
+- **Music:** "Newer Wave" by Kevin MacLeod (incompetech.com), CC BY 4.0. Attribution line is in the post text above.
+- **Sound effects:** Kenney (kenney.nl) Interface Sounds and UI Audio, CC0; whooshes, key taps and the riser were synthesised for this video.
