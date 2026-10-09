@@ -124,7 +124,9 @@ export function getSubjects(): Promise<SubjectsResponse> {
 
 export function getTimeline(limit = 3): Promise<TimelineResponse> {
   if (USE_MOCK) return delay({ entries: mock.mockTimeline().entries.slice(0, limit) });
-  return request(`/api/timeline?limit=${limit}`);
+  const d = new Date();
+  const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  return request(`/api/timeline?from=${today}&limit=${limit}`);
 }
 
 export function getSchedule(): Promise<ScheduleResponse> {
