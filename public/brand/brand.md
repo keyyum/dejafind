@@ -48,21 +48,44 @@ lockup rendered once with the font present.
 
 ## The mark
 
-A sheet of paper with one corner notched off and one highlighted line. The
-notch reads two ways at once: a folded-over corner (so it's recognizably a
-"document"), and a small chevron pointing back into the page (so it echoes
-"look back," which is what the product does). The line is a knockout
+A sheet of paper with one corner cut into a small backward arrow, and one
+highlighted line. The arrow reads as "look back" (what the product does);
+the cut corner still reads as a folded/notched page. The line is a knockout
 (negative space), not a second colour, so the mark tints cleanly with
 `currentColor` in `mark-mono.svg`.
 
 Construction: `viewBox="0 0 64 64"`, a single `evenodd` path — the page
-outline (with the corner notch built into it) as the outer contour, the
+outline (with the arrow notch built into it) as the outer contour, the
 highlighted line as an inner hole. No gradients, no stroke, no `<text>`, no
 embedded raster.
 
-**Minimum size:** 16px (the favicon size). Below that, legibility is the
-overall silhouette (rounded page + one bar) more than the notch — this is
-expected and fine; don't add detail to compensate.
+**Redrawn 2026-10-10** (founder-approved direction) from a generated
+reference, `.agents/squad-dejafind/codex-logo/concept-11.png` — that file is
+a generated concept and was never shipped as-is; the shape here is a hand
+traced `<path>` with optical corrections, not a raster trace or embedded
+image. The earlier shape (a shallow diagonal chevron) read as a generic cut
+corner more than an arrow; this one has a concave notch (tip pulled in, then
+a step back out to the edge) so the back-arrow reads clearly at normal
+sizes, which was the whole point of the redraw.
+
+Two variants were built and rasterized at 16/32/180px to choose between:
+with the highlighted line (shipped) and without it (the page + arrow notch
+alone, no line). Without the line is marginally cleaner in isolation, but it
+drops the "one highlighted line" identity the rest of this doc and the UI's
+own art direction (`docs/UI.md`) are built around, and the line adds no
+extra confusion at 16px — the arrow notch and the line sit in different
+parts of the mark and don't compete. **Shipped: with the line.** Contact
+sheet: `.agents/squad-dejafind/shots/19-0458-mark.png`.
+
+**Minimum size:** 16px (the favicon size). At that size the arrow's diagonal
+edges alias into a small stair-step rather than a clean line — this is a
+real rasterization limit (confirmed by rendering actual 16×16 pixels, not a
+CSS-scaled approximation) common to small notch/diagonal detail in any
+favicon-sized mark, not specific to this shape. The overall silhouette
+(rounded page + one bar, with a visibly irregular top-right corner) still
+reads as "a document with something going on in the corner" at that size;
+full arrow clarity is clean from 32px up. Don't add more detail to
+compensate — it will alias worse, not better.
 
 **Clear space:** leave at least the width of the notch (≈6% of the mark's
 width) of empty space on every side before any other element.
