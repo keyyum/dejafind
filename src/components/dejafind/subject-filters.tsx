@@ -11,12 +11,14 @@ export function SubjectFilters({
   active,
   hrefFor,
   quizHref,
+  flashcardsHref,
   showSchedule = true,
 }: {
   subjects: SubjectsResponse | null;
   active: SubjectFilter;
   hrefFor: (filter: SubjectFilter) => string;
   quizHref?: string | null;
+  flashcardsHref?: string | null;
   showSchedule?: boolean;
 }) {
   const item = (filter: SubjectFilter, label: string, count?: number, faint?: boolean) => {
@@ -46,10 +48,18 @@ export function SubjectFilters({
       {subjects?.subjects.map((s) => item(s.id, s.name, s.count))}
       {subjects && subjects.otherCount > 0 && item("other", "Other", subjects.otherCount, true)}
       {showSchedule && item("schedule", "Schedule")}
+      {flashcardsHref && (
+        <Link
+          href={flashcardsHref}
+          className="ml-auto rounded-sm text-ink-soft underline decoration-border decoration-2 underline-offset-[6px] outline-none hover:text-foreground hover:decoration-foreground focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          Flashcards
+        </Link>
+      )}
       {quizHref && (
         <Link
           href={quizHref}
-          className="ml-auto rounded-sm text-ink-soft underline decoration-border decoration-2 underline-offset-[6px] outline-none hover:text-foreground hover:decoration-foreground focus-visible:ring-2 focus-visible:ring-ring"
+          className={cn(!flashcardsHref && "ml-auto", "rounded-sm text-ink-soft underline decoration-border decoration-2 underline-offset-[6px] outline-none hover:text-foreground hover:decoration-foreground focus-visible:ring-2 focus-visible:ring-ring")}
         >
           Quiz me
         </Link>

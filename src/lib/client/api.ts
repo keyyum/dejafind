@@ -10,9 +10,11 @@ import type {
   DocumentsResponse,
   DocumentSummary,
   EventType,
+  FlashcardsResponse,
   ImportResponse,
   OkResponse,
   QuizRequest,
+  ReviewSheetResponse,
   QuizResponse,
   ScheduleConfirmRequest,
   ScheduleConfirmResponse,
@@ -157,6 +159,18 @@ export function search(req: SearchRequest): Promise<SearchResponse> {
 export function quiz(req: QuizRequest): Promise<QuizResponse> {
   if (USE_MOCK) return delay(mock.mockQuiz(), 600);
   return request("/api/quiz", { method: "POST", body: JSON.stringify(req) });
+}
+
+/** POST /api/flashcards. One of `subjectId` or `documentIds`. */
+export function flashcards(req: { subjectId?: string | null; documentIds?: string[] }): Promise<FlashcardsResponse> {
+  if (USE_MOCK) return delay(mock.mockFlashcards(), 600);
+  return request("/api/flashcards", { method: "POST", body: JSON.stringify(req) });
+}
+
+/** POST /api/review { subjectId }. */
+export function reviewSheet(subjectId: string): Promise<ReviewSheetResponse> {
+  if (USE_MOCK) return delay(mock.mockReview(), 600);
+  return request("/api/review", { method: "POST", body: JSON.stringify({ subjectId }) });
 }
 
 export function getStatus(): Promise<StatusResponse> {

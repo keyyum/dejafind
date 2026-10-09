@@ -9,7 +9,9 @@ import type {
   DocumentGroup,
   DocumentSummary,
   DocumentsResponse,
+  FlashcardsResponse,
   Quiz,
+  ReviewSheetResponse,
   SchedulePending,
   ScheduleResponse,
   SearchResponse,
@@ -611,6 +613,39 @@ export function mockQuiz(): Quiz {
         explanation: "The PMAT diagram: in anaphase the chromatids separate.",
         sourceDocumentId: "doc-bio-mitosis",
       },
+    ],
+  };
+}
+
+export function mockFlashcards(): FlashcardsResponse {
+  ensure();
+  const card = (id: string, term: string, definition: string, sourceDocumentId: string) => ({ id, term, definition, sourceDocumentId });
+  const cards = [
+    card("f1", "Metaphase", "The phase of mitosis where chromosomes line up at the metaphase plate, the cell's equator.", "doc-bio-l5"),
+    card("f2", "Anaphase", "Sister chromatids are pulled apart toward opposite poles.", "doc-bio-mitosis"),
+    card("f3", "Punnett square", "A grid that shows the possible offspring genotypes from two parents.", "doc-bio-ch4"),
+    card("f4", "Law of segregation", "Each parent passes on one allele for each trait.", "doc-bio-ch4"),
+    card("f5", "Thylakoid membrane", "Where the light reactions of photosynthesis happen.", "doc-bio-wb"),
+    card("f6", "Calvin cycle", "The light-independent reactions in the stroma that build glucose.", "doc-bio-wb"),
+  ];
+  const sources = Object.fromEntries([...new Set(cards.map((c) => c.sourceDocumentId))].map((id) => [id, state.docs.get(id)!]));
+  return { cards, sources };
+}
+
+export function mockReview(): ReviewSheetResponse {
+  return {
+    subjectId: "sub-bio",
+    subjectName: "Biology",
+    tookMs: 7200,
+    lines: [
+      { text: "Quiz on Oct 17 covers chapters 4 and 5: cell division and genetics. Bring a calculator.", documentId: "doc-gc-bio" },
+      { text: "Mitosis runs prophase, metaphase, anaphase, telophase (PMAT).", documentId: "doc-bio-mitosis" },
+      { text: "In metaphase, chromosomes align at the metaphase plate.", documentId: "doc-bio-l5" },
+      { text: "Anaphase pulls the sister chromatids apart.", documentId: "doc-bio-l5" },
+      { text: "Mendel's law of segregation: each parent passes one allele.", documentId: "doc-bio-ch4" },
+      { text: "Punnett squares show the possible offspring genotypes.", documentId: "doc-bio-ch4" },
+      { text: "Photosynthesis: 6CO2 + 6H2O + light → C6H12O6 + 6O2.", documentId: "doc-bio-wb" },
+      { text: "Light reactions happen in the thylakoid membrane; the Calvin cycle in the stroma.", documentId: "doc-bio-wb" },
     ],
   };
 }
