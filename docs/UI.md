@@ -33,7 +33,7 @@ Mockup to match: https://claude.ai/artifact/Ctv1CrDG8dSP85eWKCH3Tt, artboard "B 
 ## Already installed and verified on Tailwind 4 + React 19
 
 - shadcn (Base UI flavor, CSS variables) with the tweakcn `claude` preset applied in `src/app/globals.css`: warm off-white background, terracotta primary.
-- Fonts via `next/font`: Fraunces (`font-serif`, headings), Figtree (`font-sans`, body), JetBrains Mono (`font-mono`, citations and status). `h1`–`h3` are serif by default.
+- Fonts via `next/font`: Figtree (`font-sans`, everything), JetBrains Mono (`font-mono`, only for the status panel numbers). Fraunces is loaded but unused in this direction; do not use serif.
 - `src/components/ui/animated-list.tsx` (Magic UI) for the ingest toast stack.
 - `src/components/kibo-ui/status` for the local status pill.
 - Stock shadcn: `button`, `badge`, `card`, `command`, `dialog`, `tabs`, `sonner`, `input`, `textarea`, `radio-group`, `field`, `label`, `separator`.
