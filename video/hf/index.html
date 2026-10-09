@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>DéjàFind — 60 s demo</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face {
+        font-family: "Figtree";
+        font-style: normal;
+        font-weight: 300 900;
+        font-display: block;
+        src: url("assets/fonts/figtree-latin.woff2") format("woff2");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      @font-face {
+        font-family: "Figtree";
+        font-style: normal;
+        font-weight: 300 900;
+        font-display: block;
+        src: url("assets/fonts/figtree-latin-ext.woff2") format("woff2");
+        unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+      }
+      :root {
+        --page: #fcfcfa;
+        --ink: #1f1f1d;
+        --secondary: #7a7a74;
+        --hairline: #ededea;
+        --accent: #c2410c;
+        --success: #3c9a5f;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: var(--page); }
+      #root {
+        position: relative; width: 100%; height: 100%; overflow: hidden;
+        font-family: "Figtree", sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased;
+      }
+      .bg {
+        position: absolute; inset: 0;
+        background: radial-gradient(120% 90% at 50% 40%, #fefefc 0%, #fbfaf6 55%, #f2efe7 100%);
+      }
+      .layer { position: absolute; inset: 0; }
+
+      /* Headlines: Figtree 600 on the page colour, one phrase in the accent. */
+      .headline { position: absolute; font-weight: 600; letter-spacing: -0.02em; line-height: 1.04; }
+      .headline .line { display: block; white-space: nowrap; }
+      .headline .ch { opacity: 0; }
+      .accent { color: var(--accent); }
+
+      /* Real UI, cropped from screen recordings of the app, floated as cards. */
+      .card {
+        position: absolute; background: #fff; border-radius: 22px; overflow: hidden; opacity: 0;
+        box-shadow: 0 1px 2px rgba(31, 31, 29, 0.05), 0 10px 24px rgba(31, 31, 29, 0.06), 0 40px 90px rgba(31, 31, 29, 0.13);
+      }
+      .card video, .card img { display: block; width: 100%; height: auto; }
+
+      /* Caption band: bottom centre, one line, key words tinted. */
+      .cap {
+        position: absolute; left: 0; right: 0; bottom: 54px; display: flex; justify-content: center; pointer-events: none;
+      }
+      .cap span.band {
+        display: block; background: #fff; color: var(--ink); white-space: nowrap;
+        font-size: 46px; font-weight: 500; letter-spacing: -0.01em; line-height: 1; padding: 22px 38px 24px;
+        border-radius: 18px; box-shadow: 0 1px 2px rgba(31, 31, 29, 0.06), 0 18px 44px rgba(31, 31, 29, 0.12);
+      }
+      .cap b { font-weight: 600; color: var(--accent); }
+
+      /* Scene 1: the camera roll flood. */
+      .flood { position: absolute; left: -12px; top: -4px; width: 1944px; display: grid; grid-template-columns: repeat(8, 236px); gap: 8px; }
+      .flood div { height: 172px; border-radius: 6px; background-size: cover; background-position: center; opacity: 0; box-shadow: 0 6px 18px rgba(31, 31, 29, 0.12); }
+      .veil { position: absolute; inset: 0; background: var(--page); opacity: 0; }
+      .vband { position: absolute; left: 0; right: 0; top: 380px; height: 330px; opacity: 0;
+        background: linear-gradient(180deg, rgba(252,252,250,0) 0%, rgba(252,252,250,0.96) 22%, rgba(252,252,250,0.96) 78%, rgba(252,252,250,0) 100%); }
+
+      /* Name card. */
+      .lockup { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 46px; }
+      .lockup svg { width: 176px; height: 176px; flex: none; opacity: 0; color: var(--ink); }
+      .lockup .word { font-size: 176px; font-weight: 600; letter-spacing: -0.02em; line-height: 1; opacity: 0; }
+
+      /* Small "time cut" note on product cards: the model waits are cut, and the video says so. */
+      .cutnote {
+        position: absolute; font-size: 22px; font-weight: 500; color: #66665f; background: #fff;
+        border-radius: 999px; padding: 9px 18px; opacity: 0; box-shadow: 0 6px 18px rgba(31, 31, 29, 0.1); white-space: nowrap;
+      }
+
+      /* Close. */
+      .ink { position: absolute; inset: 0; background: var(--ink); opacity: 0; }
+      .endlock { bottom: auto; height: 220px; top: 330px; gap: 36px; opacity: 0; }
+      .endlock svg { width: 150px; height: 150px; opacity: 1; color: var(--page); }
+      .endlock .word { font-size: 150px; opacity: 1; color: var(--page); }
+      .endline { position: absolute; left: 0; right: 0; text-align: center; color: var(--page); }
+      .endtag { top: 610px; font-size: 64px; font-weight: 600; letter-spacing: -0.02em; }
+      .endmeta { top: 760px; font-size: 34px; font-weight: 500; color: #b9b9b2; opacity: 0; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="59.5" data-width="1920" data-height="1080">
+      <div class="bg"></div>
+
+      <!-- 0–4.4 · The pain -->
+      <div id="s1" class="layer">
+        <div id="flood" class="flood"></div>
+        <div id="veil" class="veil"></div>
+        <div id="band" class="vband"></div>
+      </div>
+      <div id="h1a" class="headline clip" data-start="0" data-duration="2.5" data-track-index="5" style="left: 0; right: 0; top: 452px; text-align: center; font-size: 132px">
+        <span class="line">You photograph everything.</span>
+      </div>
+      <div id="h1b" class="headline clip" data-start="2.35" data-duration="2.15" data-track-index="5" style="left: 0; right: 0; top: 452px; text-align: center; font-size: 132px">
+        <span class="line">You <span class="accent">never open it</span> again.</span>
+      </div>
+
+      <!-- 4.4–6.4 · Name -->
+      <div id="name" class="lockup clip" data-start="4.3" data-duration="2.2" data-track-index="4">
+        <svg class="mk" data-mark viewBox="0 0 64 64" fill="none" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" fill="currentColor" d="M18 8H42L24 28L36 21L50 22V52A4 4 0 0 1 46 56H18A4 4 0 0 1 14 52V12A4 4 0 0 1 18 8Z M23.5 36H40.5A2.5 2.5 0 0 1 43 38.5A2.5 2.5 0 0 1 40.5 41H23.5A2.5 2.5 0 0 1 21 38.5A2.5 2.5 0 0 1 23.5 36Z"/></svg>
+        <span class="word">DéjàFind</span>
+      </div>
+
+      <!-- 6.4–18 · It watches -->
+      <div id="h3" class="headline clip" data-start="6.4" data-duration="1.9" data-track-index="5" style="left: 150px; top: 404px; font-size: 96px">
+        <span class="line">Screenshot the GC.</span>
+        <span class="line accent">That’s all.</span>
+      </div>
+      <div id="gc" class="card" style="left: 1130px; top: 310px; width: 680px"><img src="assets/gc.png" alt="" /></div>
+      <div id="flash" class="layer" style="background: #fff; opacity: 0"></div>
+
+      <div id="watchCard" class="card" style="left: 335px; top: 96px; width: 1250px">
+        <video id="v-watch" class="clip" src="assets/clips/watch-lib.mp4" muted playsinline data-start="8.1" data-duration="9.7" data-track-index="1"></video>
+      </div>
+      <div id="toastCard" class="card" style="left: 860px; top: 786px; width: 760px; border-radius: 14px">
+        <video id="v-toast" class="clip" src="assets/clips/watch-toast.mp4" muted playsinline data-start="12.2" data-duration="5.3" data-track-index="2"></video>
+      </div>
+      <div id="cut1" class="cutnote" style="left: 1400px; top: 70px">Model wait cut</div>
+
+      <!-- 18–26 · Snap -->
+      <div id="snapCard" class="card" style="left: 320px; top: 130px; width: 1280px">
+        <video id="v-snap" class="clip" src="assets/clips/snap-sheet.mp4" muted playsinline data-start="18.0" data-duration="4.6" data-track-index="1"></video>
+      </div>
+      <div id="snapLibCard" class="card" style="left: 335px; top: 96px; width: 1250px">
+        <video id="v-snaplib" class="clip" src="assets/clips/snap-lib.mp4" muted playsinline data-start="22.3" data-duration="3.75" data-track-index="2"></video>
+      </div>
+
+      <!-- 26–36 · Find -->
+      <div id="typeCard" class="card" style="left: 210px; top: 330px; width: 1500px; border-radius: 26px">
+        <video id="v-type" class="clip" src="assets/clips/find-type.mp4" muted playsinline data-start="26.0" data-duration="4.0" data-track-index="1"></video>
+      </div>
+      <div id="answerCard" class="card" style="left: 160px; top: 300px; width: 1600px">
+        <video id="v-answer" class="clip" src="assets/clips/find-answer.mp4" muted playsinline data-start="29.6" data-duration="3.9" data-track-index="2"></video>
+      </div>
+      <div id="docCard" class="card" style="left: 260px; top: 60px; width: 1400px"><img src="assets/stills/find-doc.jpg" alt="" /></div>
+      <div id="cut2" class="cutnote" style="left: 1500px; top: 268px">Model wait cut</div>
+      <div id="cut3" class="cutnote" style="left: 1400px; top: 70px">Model wait cut</div>
+      <div id="cut4" class="cutnote" style="left: 1400px; top: 70px">Model wait cut</div>
+
+      <!-- 36–44 · Nothing leaves the laptop -->
+      <div id="h6" class="headline clip" data-start="36.0" data-duration="4.0" data-track-index="5" style="left: 150px; top: 380px; font-size: 112px">
+        <span class="line">Nothing leaves</span>
+        <span class="line accent">the laptop.</span>
+      </div>
+      <div id="statusCard" class="card" style="left: 1110px; top: 190px; width: 640px"><img src="assets/stills/status-panel.jpg" alt="" /></div>
+      <div id="dropCard" class="card" style="left: 335px; top: 96px; width: 1250px">
+        <video id="v-drop" class="clip" src="assets/clips/drop-lib.mp4" muted playsinline data-start="39.9" data-duration="4.0" data-track-index="1"></video>
+      </div>
+
+      <!-- 44–52 · Quiz -->
+      <div id="quizCard" class="card" style="left: 520px; top: 46px; width: 880px">
+        <video id="v-quiz" class="clip" src="assets/clips/quiz.mp4" muted playsinline data-start="44.1" data-duration="7.6" data-track-index="1"></video>
+      </div>
+
+      <!-- Caption band -->
+      <div id="c3" class="cap clip" data-start="8.5" data-duration="3.6" data-track-index="8"><span class="band">No upload. It <b>watches</b> your folders.</span></div>
+      <div id="c3b" class="cap clip" data-start="12.3" data-duration="5.4" data-track-index="8"><span class="band">Filed under <b>Biology</b>. Oct 17 goes on your timeline.</span></div>
+      <div id="c4" class="cap clip" data-start="18.3" data-duration="7.5" data-track-index="8"><span class="band">Slides, whiteboards, PDFs. <b>Filed by subject.</b></span></div>
+      <div id="c5" class="cap clip" data-start="26.3" data-duration="3.6" data-track-index="8"><span class="band">Ask <b>anything</b> you ever saw.</span></div>
+      <div id="c5b" class="cap clip" data-start="30.0" data-duration="5.8" data-track-index="8"><span class="band">It answers, and <b>shows you where.</b></span></div>
+      <div id="c6" class="cap clip" data-start="40.1" data-duration="3.7" data-track-index="8"><span class="band">Every read runs <b>on this laptop.</b></span></div>
+      <div id="c7" class="cap clip" data-start="44.4" data-duration="7.3" data-track-index="8"><span class="band">It <b>quizzes you</b> from your own notes.</span></div>
+
+      <!-- 52–59.5 · Close -->
+      <div id="ink" class="ink"></div>
+      <div id="endlogo" class="lockup endlock">
+        <svg class="mk" data-mark viewBox="0 0 64 64" fill="none" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" fill="currentColor" d="M18 8H42L24 28L36 21L50 22V52A4 4 0 0 1 46 56H18A4 4 0 0 1 14 52V12A4 4 0 0 1 18 8Z M23.5 36H40.5A2.5 2.5 0 0 1 43 38.5A2.5 2.5 0 0 1 40.5 41H23.5A2.5 2.5 0 0 1 21 38.5A2.5 2.5 0 0 1 23.5 36Z"/></svg>
+        <span class="word">DéjàFind</span>
+      </div>
+      <div id="endtag" class="endline endtag headline"><span class="line">Find what you <span class="accent2">already saw.</span></span></div>
+      <div id="endmeta" class="endline endmeta">github.com/keyyum/dejafind · #AppBuildersPH</div>
+    </div>
+
+    <script>
+      // ---- deterministic build of repeated elements ----
+      const PHOTOS = ["bio-mitosis-slide", "whiteboard-photosynthesis", "calc-limits-slide", "sanaysay-wika-kultura",
+        "physics-kinematics-slide", "calc-longquiz-handout", "gc-biology-quiz-oct17", "timetable-bscs-2b",
+        "gc-calculus-longquiz-oct19", "jollibee-receipt"];
+      let seed = 7;
+      const rnd = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
+      const flood = document.getElementById("flood");
+      const tiles = [];
+      for (let i = 0; i < 48; i++) {
+        const d = document.createElement("div");
+        d.style.backgroundImage = `url("assets/photos/${PHOTOS[(i * 7 + Math.floor(i / 8) * 3) % PHOTOS.length]}.jpg")`;
+        flood.appendChild(d);
+        tiles.push(d);
+      }
+      // Split headline text into per-character spans for the typed reveal.
+      function typeify(el) {
+        const chars = [];
+        const walk = (node) => {
+          for (const child of [...node.childNodes]) {
+            if (child.nodeType === 3) {
+              const frag = document.createDocumentFragment();
+              for (const c of child.textContent) {
+                const s = document.createElement("span");
+                s.className = "ch";
+                s.textContent = c;
+                frag.appendChild(s);
+                chars.push(s);
+              }
+              child.replaceWith(frag);
+            } else walk(child);
+          }
+        };
+        walk(el);
+        return chars;
+      }
+      const typed = {};
+      for (const id of ["h1a", "h1b", "h3", "h6", "endtag"]) typed[id] = typeify(document.getElementById(id));
+
+      // ---- timeline ----
+      const tl = gsap.timeline({ paused: true });
+      const E = "power3.out";
+      const type = (id, at, per = 0.032) => tl.to(typed[id], { opacity: 1, duration: 0.01, stagger: per, ease: "none" }, at);
+      const cardIn = (sel, at, from = { y: 60, scale: 0.97 }) =>
+        tl.fromTo(sel, { opacity: 0, ...from }, { opacity: 1, x: 0, y: 0, scale: 1, rotation: 0, duration: 0.7, ease: E }, at);
+      const cardOut = (sel, at, to = { y: -40, scale: 0.98 }) => tl.to(sel, { opacity: 0, ...to, duration: 0.5, ease: "power2.in" }, at);
+
+      // 1 · flood
+      tiles.forEach((t, i) => {
+        const r = (rnd() - 0.5) * 7;
+        const at = 0.05 + (i % 8) * 0.04 + Math.floor(i / 8) * 0.13 + rnd() * 0.12;
+        tl.fromTo(t, { opacity: 0, scale: 0.72, y: 40, rotation: r * 2 }, { opacity: 1, scale: 1, y: 0, rotation: r, duration: 0.45, ease: "back.out(1.4)" }, at);
+      });
+      tl.to("#band", { opacity: 1, duration: 0.4, ease: "power2.out" }, 0.2);
+      tl.to("#veil", { opacity: 0.18, duration: 0.6 }, 0.2);
+      type("h1a", 0.35, 0.028);
+      tl.to("#h1a .line", { opacity: 0, y: -24, duration: 0.3, ease: "power2.in" }, 2.15);
+      tl.to("#veil", { opacity: 0.55, duration: 0.7 }, 2.2);
+      tl.to(tiles, { filter: "grayscale(1)", duration: 0.8 }, 2.2);
+      type("h1b", 2.45, 0.03);
+      // tiles collapse toward the centre as the name arrives
+      tl.to(tiles, { x: (i) => (960 - (i % 8) * 244 - 118) * 0.85, y: (i) => (540 - Math.floor(i / 8) * 180 - 86) * 0.85, scale: 0.25, opacity: 0, duration: 0.6, ease: "power3.in", stagger: { each: 0.004, from: "center" } }, 3.95);
+      tl.to("#h1b .line", { opacity: 0, scale: 0.94, duration: 0.35, ease: "power2.in" }, 4.05);
+      tl.to("#veil, #band", { opacity: 0, duration: 0.4 }, 4.3);
+
+      // 2 · name
+      tl.fromTo("#name svg", { opacity: 0, scale: 0.6, rotation: -8 }, { opacity: 1, scale: 1, rotation: 0, duration: 0.6, ease: "back.out(1.6)" }, 4.4);
+      tl.fromTo("#name .word", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.6, ease: E }, 4.55);
+      tl.to("#name svg, #name .word", { opacity: 0, y: -30, duration: 0.4, ease: "power2.in" }, 6.0);
+
+      // 3 · it watches
+      type("h3", 6.45, 0.022);
+      cardIn("#gc", 6.55, { x: 140, y: 0, rotation: 3, scale: 0.96 });
+      tl.to("#flash", { opacity: 0.85, duration: 0.08, ease: "none" }, 7.62);
+      tl.to("#flash", { opacity: 0, duration: 0.35, ease: "power2.out" }, 7.7);
+      tl.to("#gc", { x: -560, y: 330, scale: 0.28, rotation: -6, opacity: 0, duration: 0.6, ease: "power3.in" }, 7.75);
+      tl.to("#h3 .line", { opacity: 0, x: -30, duration: 0.35, ease: "power2.in" }, 7.85);
+      cardIn("#watchCard", 8.05, { y: 90, scale: 0.95 });
+      tl.fromTo("#cut1", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.3 }, 10.9);
+      tl.to("#cut1", { opacity: 0, duration: 0.3 }, 11.9);
+      tl.fromTo("#watchCard", { transformOrigin: "30% 55%" }, { scale: 1.08, duration: 4.6, ease: "sine.inOut" }, 12.6);
+      cardIn("#toastCard", 12.2, { y: 70, scale: 0.98 });
+      cardOut("#toastCard", 17.35);
+      cardOut("#watchCard", 17.4, { y: -50, scale: 1.08 });
+
+      // 4 · snap
+      cardIn("#snapCard", 17.95, { y: 90, scale: 0.94 });
+      cardOut("#snapCard", 22.1, { y: -60, scale: 0.96 });
+      cardIn("#snapLibCard", 22.2, { y: 90, scale: 0.95 });
+      cardOut("#snapLibCard", 25.75);
+      tl.fromTo("#cut3", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.3 }, 23.3);
+      tl.to("#cut3", { opacity: 0, duration: 0.3 }, 24.4);
+
+      // 5 · find
+      cardIn("#typeCard", 25.95, { y: 70, scale: 0.97 });
+      tl.to("#typeCard", { y: -230, duration: 0.7, ease: "power3.inOut" }, 29.3);
+      cardIn("#answerCard", 29.5, { y: 140, scale: 0.97 });
+      tl.fromTo("#cut2", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.3 }, 29.5);
+      tl.to("#cut2", { opacity: 0, duration: 0.3 }, 30.6);
+      cardOut("#typeCard", 33.1, { y: -300 });
+      cardOut("#answerCard", 33.15, { y: -60 });
+      cardIn("#docCard", 33.3, { y: 80, scale: 0.96 });
+      tl.to("#docCard", { scale: 1.04, duration: 2.3, ease: "sine.inOut" }, 34.0);
+      cardOut("#docCard", 35.75);
+
+      // 6 · nothing leaves the laptop
+      type("h6", 36.15, 0.035);
+      cardIn("#statusCard", 36.6, { x: 80, y: 0, scale: 0.96 });
+      tl.to("#h6 .line", { opacity: 0, x: -30, duration: 0.4, ease: "power2.in" }, 39.5);
+      cardOut("#statusCard", 39.5, { x: 60, y: 0 });
+      cardIn("#dropCard", 39.75, { y: 90, scale: 0.95 });
+      cardOut("#dropCard", 43.75);
+      tl.fromTo("#cut4", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.3 }, 41.0);
+      tl.to("#cut4", { opacity: 0, duration: 0.3 }, 42.1);
+
+      // 7 · quiz
+      cardIn("#quizCard", 44.0, { y: 90, scale: 0.95 });
+      tl.to("#quizCard", { scale: 1.03, duration: 7, ease: "sine.inOut" }, 44.7);
+      cardOut("#quizCard", 51.6);
+
+      // captions: rise in, fade out
+      for (const id of ["c3", "c3b", "c4", "c5", "c5b", "c6", "c7"]) {
+        const el = document.getElementById(id);
+        const s = parseFloat(el.dataset.start), d = parseFloat(el.dataset.duration);
+        tl.fromTo(`#${id} .band`, { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.35, ease: E }, s);
+        tl.to(`#${id} .band`, { opacity: 0, duration: 0.25, ease: "power1.in" }, s + d - 0.28);
+      }
+
+      // 8 · close
+      tl.to("#ink", { opacity: 1, duration: 0.6, ease: "power2.inOut" }, 51.9);
+      tl.fromTo("#endlogo", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.8, ease: E }, 52.5);
+      type("endtag", 53.4, 0.04);
+      tl.fromTo("#endmeta", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.6, ease: E }, 55.2);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

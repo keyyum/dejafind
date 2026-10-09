@@ -52,3 +52,6 @@ next-env.d.ts
 
 # dejafind: compiled on first use by src/server/ocr.ts, machine-specific binary
 /scripts/ocr-words
+
+# story: raw screen recordings and recorder scratch
+video/takes/

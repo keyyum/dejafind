@@ -1,0 +1,37 @@
+[
+  {
+    "name": "b1-library",
+    "seconds": 3.7,
+    "cuts": 0
+  },
+  {
+    "name": "b2-schedule",
+    "seconds": 10.38,
+    "cuts": 1
+  },
+  {
+    "name": "b3-watch",
+    "seconds": 12.25,
+    "cuts": 1
+  },
+  {
+    "name": "b4-snap",
+    "seconds": 13.74,
+    "cuts": 1
+  },
+  {
+    "name": "b5-find",
+    "seconds": 14.83,
+    "cuts": 2
+  },
+  {
+    "name": "b6-drop",
+    "seconds": 8.25,
+    "cuts": 1
+  },
+  {
+    "name": "b7-quiz",
+    "seconds": 10.51,
+    "cuts": 0
+  }
+]
