@@ -41,7 +41,7 @@ yarn-error.log*
 next-env.d.ts
 
 # dejafind: local data, never commit user files or indexes
-/data/
+/data/*
 !/data/samples/
 !/data/samples/**
 *.sqlite
