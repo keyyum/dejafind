@@ -30,6 +30,8 @@ export function ScheduleCard({ onConfirmed }: { onConfirmed: () => void }) {
 
   useDejaEvent((e) => {
     if (e.type === "schedule.pending") setPending(e.pending);
+    // The timetable is often still being read when it asks; pick up its thumbnail once filed.
+    if (e.type === "document.filed" && e.document.id === pending?.documentId) setDoc(e.document);
   });
 
   useEffect(() => {
@@ -75,7 +77,7 @@ export function ScheduleCard({ onConfirmed }: { onConfirmed: () => void }) {
     >
       {doc && (
         <div className="w-[140px] shrink-0">
-          <Paper doc={doc} maxAspect={1.1} />
+          <Paper doc={doc} src={doc.thumbUrl ?? `/api/thumb/${doc.id}`} maxAspect={1.1} />
         </div>
       )}
       <div className="flex min-w-[280px] flex-1 flex-col gap-2">
