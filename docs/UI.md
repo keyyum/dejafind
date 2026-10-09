@@ -18,6 +18,16 @@ Mockup: https://claude.ai/artifact/Ctv1CrDG8dSP85eWKCH3Tt, artboards "1 · Libra
 
 **4. Quiz.** Back link, "2 of 5", a 2px progress line. One question at 30px, four quiet rows as real buttons. On answer: correct row turns green-bordered, a wrong pick orange-bordered, others fade. Below a rule: verdict, one-line explanation, the source document thumbnail with a link, Next. Final screen: score, Again, Back.
 
+## Wow, two choreographed moments and one treatment
+
+**Paper tiles.** At ingest, photos get document edge detection and a perspective warp (OpenCV), then a background clean, so a whiteboard photo becomes the whiteboard and an angled slide becomes a flat slide. Fallback: plain crop when no quad is found. Screenshots skip the warp and get rounded corners. In the Library, tiles keep their real aspect ratio (masonry via CSS columns), each with a soft shadow like paper on a desk. No uniform boxes. This is the look; do it before any animation.
+
+**The capture lands.** New document flies in from the bottom-right (where macOS shows its screenshot preview), shrinks into the top of the grid while other tiles shift aside with a layout animation, a thin light bar sweeps across it during "Reading…", then the title types in and the subject label appears beneath. Target under two seconds of motion after the read completes. Built with `motion/react` layout animations plus a CSS sweep.
+
+**The date lifts off.** When a date is found, a small chip ("Oct 17") rises from the tile and drops into the Coming up strip. Thirty minutes. Makes extraction visible.
+
+Only after 05:00: search highlights that paint in left to right; the quiz card sliding out of the source thumbnail; Lens-style tap-to-locate in the Document view, which needs word boxes from Apple Vision OCR. Never: page transitions, hover effects everywhere, confetti, animated backgrounds.
+
 ## Moments, not widgets
 
 **Filing confirmation.** A dark snackbar bottom-center for six seconds: "Screenshot filed under Biology · Oct 17 added to Coming up", Undo. The stage moment; polish it first.
@@ -41,4 +51,4 @@ The core worker exposes JSON route handlers under `/api/`: `documents` (grouped 
 
 ## Not building
 
-Today or dashboard pages. Subject pages as documents. Checklists. Chat bubbles or a bot name. Folder trees. Sidebars. Dark mode. Settings beyond "which folders to watch". Any animation beyond the snackbar and the quiz fade.
+Today or dashboard pages. Subject pages as documents. Checklists. Chat bubbles or a bot name. Folder trees. Sidebars. Dark mode. Settings beyond "which folders to watch". Any animation beyond those listed in the Wow section.
