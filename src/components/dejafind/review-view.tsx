@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import type { DocumentSummary, ReviewSheetResponse } from "@/lib/api-types";
 import { getDocument, reviewSheet } from "@/lib/client/api";
 import { seconds } from "@/lib/client/format";
+import { downloadMarkdown, reviewMarkdown, slug } from "@/lib/client/markdown";
 import { Paper } from "./paper";
 import { SiteHeader } from "./site-header";
 
@@ -64,7 +65,16 @@ function ReviewRun({ subjectId }: { subjectId: string }) {
         {data && (
           <>
             <header className="flex flex-col gap-2">
+              <div className="flex items-baseline justify-between gap-6">
               <h1 className="text-[34px] leading-tight font-semibold tracking-[-0.02em]">{data.subjectName} reviewer</h1>
+                <button
+                  type="button"
+                  onClick={() => downloadMarkdown(`${slug(data.subjectName)}-reviewer`, reviewMarkdown(data, docs))}
+                  className="shrink-0 text-[17px] rounded-sm text-ink-soft underline decoration-border decoration-2 underline-offset-[6px] outline-none hover:text-foreground hover:decoration-foreground focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  Save as .md
+                </button>
+              </div>
               <p className="text-[16px] text-muted-foreground tabular-nums">
                 {data.lines.length} {data.lines.length === 1 ? "line" : "lines"} from {sourceCount === 1 ? "one of your documents" : `${sourceCount} of your documents`} · written on this laptop in {seconds(data.tookMs)}
               </p>
