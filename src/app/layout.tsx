@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Figtree, JetBrains_Mono } from "next/font/google";
 import { AppShell } from "@/components/dejafind/app-shell";
 import "./globals.css";
@@ -12,6 +12,8 @@ const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains",
   subsets: ["latin"],
 });
+
+export const viewport: Viewport = { themeColor: "#fcfcfa" };
 
 export const metadata: Metadata = {
   title: "DéjàFind",

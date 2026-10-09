@@ -230,6 +230,10 @@
   --shadow-paper: var(--paper-shadow);
 }
 
+body {
+  touch-action: manipulation;
+}
+
 mark {
   background: var(--mark);
   color: inherit;

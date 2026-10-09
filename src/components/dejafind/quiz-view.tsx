@@ -109,10 +109,10 @@ function QuizRun({
         }
       />
       <div aria-hidden className="mx-auto mt-5 h-0.5 w-[calc(100%-3rem)] max-w-[1224px] bg-hairline sm:w-[calc(100%-6rem)]">
-        <div className="h-full bg-foreground transition-[width] duration-500 ease-out" style={{ width: `${progress}%` }} />
+        <div className="h-full origin-left bg-foreground transition-transform duration-500 ease-out" style={{ transform: `scaleX(${progress / 100})` }} />
       </div>
 
-      <main className="mx-auto flex w-full max-w-[820px] flex-1 flex-col gap-10 px-6 pt-16 pb-24 sm:px-12">
+      <main id="main" className="mx-auto flex w-full max-w-[820px] flex-1 flex-col gap-10 px-6 pt-16 pb-24 sm:px-12">
         {error && <p className="text-[19px] text-muted-foreground">Could not make a quiz: {error}</p>}
         {!data && !error && (
           <p className="flex items-center gap-3 text-[19px] text-muted-foreground" role="status">
@@ -123,7 +123,7 @@ function QuizRun({
 
         {question && (
           <>
-            <h1 className="text-[30px] leading-[1.35] font-medium tracking-[-0.015em]">{question.question}</h1>
+            <h1 className="text-[30px] leading-[1.35] font-medium tracking-[-0.015em] text-balance">{question.question}</h1>
             <div className="flex flex-col gap-3" role="group" aria-label="Choices">
               {question.choices.map((c, i) => {
                 const isRight = i === question.answerIndex;

@@ -79,7 +79,8 @@ export function SearchView() {
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto flex w-full max-w-[1320px] flex-col gap-8 px-6 pt-12 pb-32 sm:px-12">
+      <main id="main" className="mx-auto flex w-full max-w-[1320px] flex-col gap-8 px-6 pt-12 pb-32 sm:px-12">
+        <h1 className="sr-only">{q ? `Search results for ${q}` : "Search"}</h1>
         <div className="flex max-w-[1000px] items-center gap-3">
           <div className="min-w-0 flex-1">
             <SearchBar defaultValue={q} subjectId={subject} autoFocus={!q} />
@@ -112,7 +113,7 @@ export function SearchView() {
             {answer && (
               <section aria-label="Answer" className="mb-12 flex flex-wrap items-start justify-between gap-x-12 gap-y-8 border-b border-hairline pb-12">
                 <div className="flex max-w-[680px] min-w-[320px] flex-[1_1_420px] flex-col gap-3">
-                  <p className="text-[24px] leading-[1.45] tracking-[-0.01em] text-foreground">
+                  <p className="text-[24px] leading-[1.45] tracking-[-0.01em] text-pretty text-foreground">
                     <AnswerText text={answer.text} keyFact={answer.keyFact} />
                   </p>
                   <p className="text-[15px] text-muted-foreground">

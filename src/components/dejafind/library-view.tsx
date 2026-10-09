@@ -212,7 +212,8 @@ export function LibraryView() {
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto flex w-full max-w-[1320px] flex-col gap-8 px-6 pt-12 pb-32 sm:px-12">
+      <main id="main" className="mx-auto flex w-full max-w-[1320px] flex-col gap-8 px-6 pt-12 pb-32 sm:px-12">
+        <h1 className="sr-only">Your documents</h1>
         <div className="flex max-w-[1000px] items-center gap-3">
           <div className="min-w-0 flex-1">
             <SearchBar subjectId={filter !== "all" && filter !== "schedule" ? filter : null} />

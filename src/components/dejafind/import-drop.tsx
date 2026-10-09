@@ -153,8 +153,8 @@ export function ImportDrop({ children }: { children: ReactNode }) {
         <div className="fixed inset-x-0 top-0 z-40" role="status" aria-live="polite">
           <div className="h-0.5 bg-hairline">
             <div
-              className="h-full bg-foreground transition-[width] duration-500 ease-out"
-              style={{ width: `${(batch.done / batch.total) * 100}%` }}
+              className="h-full origin-left bg-foreground transition-transform duration-500 ease-out"
+              style={{ transform: `scaleX(${batch.done / batch.total})` }}
             />
           </div>
           <p className="mx-auto mt-2 w-fit rounded-full bg-foreground px-4 py-1.5 text-[15px] font-medium text-background tabular-nums shadow-md">
