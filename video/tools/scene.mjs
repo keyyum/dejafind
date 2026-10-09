@@ -173,6 +173,42 @@ if (beat === "quiz") {
   console.log(await stop());
 }
 
+if (beat === "ask2") {
+  await goto(cdp, APP + "/", 3000);
+  const stop = await record();
+  await sleep(800);
+  mark("type");
+  await clickSelector(cdp, 'input[placeholder*="Search"]');
+  await sleep(250);
+  await typeText(cdp, "what room is the bio quiz", 80);
+  await sleep(300);
+  mark("enter");
+  await pressKey(cdp, "Enter");
+  console.log("answer ms", await waitGone("Reading your documents"));
+  mark("answer");
+  await sleep(3500);
+  await grab("input", `document.querySelector('input[placeholder*="Search"]')`);
+  await grab("answer", `document.querySelector('section[aria-label="Answer"]')`);
+  await shot(cdp, out("-answer.png"));
+  console.log(await stop());
+}
+
+if (beat === "review") {
+  const subs = await (await fetch(APP + "/api/subjects")).json();
+  const bio = subs.subjects.find((x) => x.name === "Biology");
+  await goto(cdp, APP + "/", 2000);
+  const stop = await record();
+  await sleep(600);
+  mark("open");
+  await cdp.send("Page.navigate", { url: `${APP}/review?subject=${bio.id}` });
+  console.log("review ms", await waitGone("Writing a one-page reviewer", 300000));
+  mark("ready");
+  await sleep(4500);
+  await grab("main", `document.querySelector('main')`);
+  await shot(cdp, out("-sheet.png"));
+  console.log(await stop());
+}
+
 if (beat === "drop") {
   await goto(cdp, APP + "/", 3000);
   const stop = await record();
