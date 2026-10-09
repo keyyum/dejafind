@@ -74,19 +74,23 @@ async function generateQuestions(
   const allowed = new Set(aliases);
   let lastError = "no attempt";
   for (let attempt = 0; attempt < 2; attempt++) {
-    const response = await ollama.chat({
-      model: TEXT_MODEL,
-      format: "json",
-      keep_alive: -1,
-      think: false,
-      options: { temperature: 0.4, num_ctx: 8192 },
-      messages: [{ role: "user", content: prompt }],
-    });
-    const parsed = parseModelJson(response.message.content);
-    if (isValidQuizJson(parsed, count, allowed)) return parsed.questions;
-    lastError = response.message.content.slice(0, 200);
+    try {
+      const response = await ollama.chat({
+        model: TEXT_MODEL,
+        format: "json",
+        keep_alive: -1,
+        think: false,
+        options: { temperature: 0.4, num_ctx: 8192 },
+        messages: [{ role: "user", content: prompt }],
+      });
+      const parsed = parseModelJson(response.message.content);
+      if (isValidQuizJson(parsed, count, allowed)) return parsed.questions;
+      lastError = response.message.content.slice(0, 200);
+    } catch (err) {
+      lastError = err instanceof Error ? err.message : String(err);
+    }
   }
-  throw new Error(`quiz model returned invalid JSON after retry: ${lastError}`);
+  throw new Error(`quiz model failed after retry: ${lastError}`);
 }
 
 /** Five MCQs from a subject or document ids, via qwen3:4b. Step 7. */
