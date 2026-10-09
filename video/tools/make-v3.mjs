@@ -15,7 +15,7 @@ const markSvg = readFileSync(HF + "index.html", "utf8").match(/<svg class="mk" d
 const REAL = { answerS: 6.6, gcReadS: 8.8, snapReadS: 19.6, secPerDoc: 10.6, docs: 10 };
 
 const BEAT = 60 / 110, b = (n) => +(0.534 + n * BEAT).toFixed(3);
-const S = { turn: b(8), search: b(12), p1: b(26), p2: b(34), p3: b(42), p4: b(50), p5: b(58), close: b(66) };
+const S = { turn: b(8), search: b(12), p1: b(26), p2: b(38), p3: b(46), p4: b(58), p5: b(70), close: b(78) };
 const END = +(S.close + 3.0).toFixed(3), TOTAL = +(END + 3.2).toFixed(2);
 
 const VO = { "v2-0": 0.55, "v2-1": 2.25, "v2-2": S.turn + 0.3, "v2-3": S.search + 0.5, "v2-4": S.search + 4.4,
@@ -25,12 +25,12 @@ const subs = Object.entries(VO).filter(([id]) => !ON_SCREEN.has(id)).map(([id, t
 for (let i = 0; i + 1 < subs.length; i++) if (subs[i].end > subs[i + 1].t - 0.05) subs[i].end = subs[i + 1].t - 0.05;
 
 const KIN = [
-  { id: "ks", at: S.search + 4.9, words: ["Asked.", "Answered."], key: [1] },
-  { id: "k1", at: S.p1 + 0.2, words: ["Filed.", "Dated."], key: [1] },
-  { id: "k2", at: S.p2 + 0.2, words: ["Subjects,", "automatic."], key: [1] },
-  { id: "k3", at: S.p3 + 2.6, words: ["Snap.", "Filed."], key: [1] },
-  { id: "k4", at: S.p4 + 0.2, words: ["Quiz", "yourself."], key: [1] },
-  { id: "k5", at: S.p5 + 2.2, words: ["Zero", "requests", "out."], key: [0] },
+  { id: "ks", at: S.p1 - 1.45, words: ["Asked.", "Answered."], key: [1] },
+  { id: "k1", at: S.p2 - 1.45, words: ["Filed.", "Dated."], key: [1] },
+  { id: "k2", at: S.p3 - 1.55, words: ["Subjects,", "automatic."], key: [1] },
+  { id: "k3", at: S.p4 - 1.45, words: ["Snap.", "Filed."], key: [1] },
+  { id: "k4", at: S.p5 - 1.45, words: ["Quiz", "yourself."], key: [1] },
+  { id: "k5", at: S.close - 1.55, words: ["Zero", "requests", "out."], key: [0] },
 ];
 const kin = KIN.map((k) => `<div id="${k.id}" class="kin">${k.words.map((w, j) => `<span class="${k.key.includes(j) ? "accent" : ""}">${w}</span>`).join(" ")}</div>`).join("\n      ");
 
@@ -57,6 +57,7 @@ const html = `<!doctype html>
       .accent { color: var(--accent); }
       .abs { position: absolute; }
       /* the app window */
+      .camera { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; }
       .app { position: absolute; left: 160px; top: 54px; width: 1600px; height: 900px; border-radius: 24px; background: var(--page); overflow: hidden; opacity: 0;
         box-shadow: 0 1px 2px rgba(31,31,29,.05), 0 14px 30px rgba(31,31,29,.06), 0 50px 110px rgba(31,31,29,.14); }
       .hdr { position: absolute; left: 60px; right: 60px; top: 30px; height: 40px; display: flex; align-items: center; gap: 36px; font-size: 21px; }
@@ -178,6 +179,7 @@ const html = `<!doctype html>
 
       <div id="honest" class="honest">Interface re-created from the real app · outputs and timings from a real run on this laptop</div>
 
+      <div id="camera" class="camera">
       <div id="app" class="app">
         <div class="hdr"><div class="logo">${markSvg}<span>DéjàFind</span></div><span class="lnk">Schedule</span><span class="lnk">Ask</span>
           <div id="spill" class="pill"><i class="dot"></i>On this laptop · nothing sent</div></div>
@@ -262,6 +264,8 @@ const html = `<!doctype html>
           </div>
         </div>
       </div>
+      <div id="cursor" class="cursor"></div><div id="t1" class="trail"></div><div id="t2" class="trail"></div>
+      </div>
 
       ${kin}
 
@@ -276,7 +280,6 @@ const html = `<!doctype html>
       <div id="endtag" class="endline" style="top:610px;font-size:64px;font-weight:600;letter-spacing:-0.02em">Find what you already saw.</div>
       <div id="endmeta" class="endline" style="top:760px;font-size:34px;font-weight:500;color:#b9b9b2">github.com/keyyum/dejafind · #AppBuildersPH</div>
 
-      <div id="cursor" class="cursor"></div><div id="t1" class="trail"></div><div id="t2" class="trail"></div>
 ${subs.map((x, i) => `      <div id="s${i}" class="sub2 clip" data-start="${x.t.toFixed(2)}" data-duration="${(x.end - x.t).toFixed(2)}"><span>${x.text}</span></div>`).join("\n")}
     </div>
     <script>
@@ -331,7 +334,7 @@ ${subs.map((x, i) => `      <div id="s${i}" class="sub2 clip" data-start="${x.t.
       // ---- 1 · ASK ----
       const s0 = S.search;
       scene("#sc-search", s0, S.p1 - 0.1);
-      cur([[s0 + 0.2, 1500, 900], [s0 + 0.8, AX + 520, AY + 137]]); click(s0 + 0.85);
+      cur([[s0 + 0.2, 1150, 420], [s0 + 0.8, AX + 520, AY + 137]]); click(s0 + 0.85);
       tl.set("#ph", { display: "none" }, s0 + 0.95); tl.set("#caret", { opacity: 1 }, s0 + 0.95);
       tl.to("#caret", { opacity: 0, duration: 0.01, repeat: 3, yoyo: true, repeatDelay: 0.25 }, s0 + 0.95);
       qChars.forEach((c, i) => tl.set(c, { display: "inline" }, s0 + 1.15 + i * 0.07));
@@ -373,7 +376,7 @@ ${subs.map((x, i) => `      <div id="s${i}" class="sub2 clip" data-start="${x.t.
       const c0 = S.p2;
       scene("#sc-sched", c0, S.p3 - 0.1);
       tl.fromTo("#schedcard", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.4, ease: E }, c0 + 0.1);
-      cur([[c0 + 0.3, 1500, 950], [c0 + 1.1, AX + 1210, AY + 275]]); click(c0 + 1.2);
+      cur([[c0 + 0.3, 1450, 600], [c0 + 1.1, AX + 1210, AY + 275]]); click(c0 + 1.2);
       tl.to("#useit", { scale: 0.94, duration: 0.06, yoyo: true, repeat: 1 }, c0 + 1.2);
       tl.to("#schedcard", { opacity: 0, height: 0, y: -10, duration: 0.35, ease: "power2.in" }, c0 + 1.45);
       ["#fB", "#fC", "#fF", "#fN", "#fP", "#fY"].forEach((f, i) => tl.fromTo(f, { opacity: 0, y: 14, scale: 0.7 }, { opacity: 1, y: 0, scale: 1, duration: 0.25, ease: "back.out(2.2)" }, c0 + 1.65 + i * BEAT / 2));
@@ -389,7 +392,7 @@ ${subs.map((x, i) => `      <div id="s${i}" class="sub2 clip" data-start="${x.t.
       tl.fromTo("#vf", { x: -3, y: 2 }, { x: 3, y: -2, duration: 0.3, yoyo: true, repeat: 4, ease: "sine.inOut" }, n0 + 0.1);
       tl.fromTo("#focus", { opacity: 0, scale: 1.4 }, { opacity: 1, scale: 1, duration: 0.25, ease: E }, n0 + 0.5);
       tl.to("#focus", { opacity: 0, duration: 0.2 }, n0 + 1.1);
-      cur([[n0 + 0.35, 1450, 980], [n0 + 1.2, AX + 800, AY + 794]]); click(n0 + 1.3);
+      cur([[n0 + 0.35, 1250, 760], [n0 + 1.2, AX + 800, AY + 794]]); click(n0 + 1.3);
       tl.to("#shutter", { scale: 0.85, duration: 0.06, yoyo: true, repeat: 1 }, n0 + 1.3);
       tl.to("#flash", { opacity: 1, duration: 0.02 }, n0 + 1.33); tl.to("#flash", { opacity: 0, duration: 0.1 }, n0 + 1.45);
       tl.to("#vf", { x: -240, y: 110, scale: 0.3, duration: 0.45, ease: "power3.in" }, n0 + 1.55);
@@ -408,7 +411,7 @@ ${subs.map((x, i) => `      <div id="s${i}" class="sub2 clip" data-start="${x.t.
       scene("#sc-quiz", z0, S.p5 - 0.1);
       tl.to(qqChars, { opacity: 1, duration: 0.01, stagger: 0.012, ease: "none" }, z0 + 0.1);
       ["#o0", "#o1", "#o2", "#o3"].forEach((o, i) => tl.fromTo(o, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.25, ease: E }, z0 + 0.95 + i * 0.08));
-      cur([[z0 + 1.0, 1450, 980], [z0 + 1.5, AX + 640, AY + 314], [z0 + 2.0, AX + 640, AY + 470], [z0 + 2.45, AX + 640, AY + 548]]);
+      cur([[z0 + 1.0, 1300, 700], [z0 + 1.5, AX + 640, AY + 314], [z0 + 2.0, AX + 640, AY + 470], [z0 + 2.45, AX + 640, AY + 548]]);
       tl.to("#h0", { opacity: 1, duration: 0.1 }, z0 + 1.4); tl.to("#h0", { opacity: 0, duration: 0.1 }, z0 + 1.75);
       tl.to("#h2", { opacity: 1, duration: 0.1 }, z0 + 1.9); tl.to("#h2", { opacity: 0, duration: 0.1 }, z0 + 2.25);
       tl.to("#h3", { opacity: 1, duration: 0.1 }, z0 + 2.3);
@@ -422,7 +425,7 @@ ${subs.map((x, i) => `      <div id="s${i}" class="sub2 clip" data-start="${x.t.
       // ---- 6 · STATUS ----
       const t0 = S.p5;
       scene("#sc-status", t0, S.close - 0.35);
-      cur([[t0 + 0.1, 1100, 900], [t0 + 0.75, AX + 1400, AY + 50]]); click(t0 + 0.8);
+      cur([[t0 + 0.1, 1250, 500], [t0 + 0.75, AX + 1400, AY + 50]]); click(t0 + 0.8);
       tl.fromTo("#panel", { opacity: 0, scale: 0.9, y: -10 }, { opacity: 1, scale: 1, y: 0, duration: 0.35, ease: E }, t0 + 0.9);
       tl.fromTo("#zero", { scale: 1.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.35, ease: "back.out(2.5)" }, t0 + 1.15);
       ["#m0", "#m1", "#m2"].forEach((m, i) => tl.fromTo(m, { opacity: 0, x: 20 }, { opacity: 1, x: 0, duration: 0.3, ease: E }, t0 + 1.45 + i * BEAT / 2));
@@ -432,6 +435,35 @@ ${subs.map((x, i) => `      <div id="s${i}" class="sub2 clip" data-start="${x.t.
       tl.fromTo("#panel", { scale: 1 }, { scale: 1.04, duration: 1.4, ease: "none", immediateRender: false }, t0 + 2.8);
       curOff(S.close - 0.4);
 
+      // ---- camera: push into the active element, hold through the action, pull back for the caption ----
+      const cam = (t, cx, cy, sc, d = 0.6) => tl.to("#camera", { x: 960 - cx * sc, y: 470 - cy * sc, scale: sc, duration: d, ease: "power2.inOut" }, t);
+      const pull = (t) => tl.to("#camera", { x: 0, y: 0, scale: 1, duration: 0.6, ease: "power2.inOut" }, t);
+      tl.set("#camera", { x: 0, y: 0, scale: 1 }, 0);
+      // 1 Ask: bar at 1.8, answer at 1.3, date + citation at 1.5
+      cam(s0 + 0.45, 740, 191, 1.8, 0.65);
+      cam(typedEnd + 0.1, 960, 330, 1.3, 0.6);
+      cam(ansEnd - 0.35, 980, 370, 1.35, 0.6);
+      pull(S.p1 - 2.2);
+      // 2 Library: tile at 1.7, follow the chip to Coming up, pull back
+      cam(l0 + 0.6, 390, 420, 1.7, 0.6);
+      cam(l0 + 3.15, 720, 230, 1.7, 0.7);
+      pull(l0 + 4.1);
+      // 3 Schedule: card and Use it at 1.6, pull back as the filters pop
+      cam(c0 + 0.45, 1150, 330, 1.6, 0.6);
+      pull(c0 + 1.45);
+      // 4 Snap: shutter at 1.4, then the reading tile, pull back as it lands
+      cam(n0 + 0.6, 960, 700, 1.4, 0.6);
+      cam(n0 + 1.75, 390, 400, 1.6, 0.6);
+      pull(n0 + 3.6);
+      // 5 Quiz: options at 1.6, pan down for Correct + source, pull back
+      cam(z0 + 0.8, 960, 470, 1.6, 0.6);
+      cam(z0 + 2.6, 960, 600, 1.6, 0.6);
+      pull(z0 + 4.3);
+      // 6 Status: the 0 at 1.8, pan to the models, pull back
+      cam(t0 + 0.95, 1380, 220, 1.8, 0.6);
+      cam(t0 + 1.6, 1430, 330, 1.8, 0.6);
+      pull(t0 + 2.6);
+
       tl.fromTo("#honest", { opacity: 0 }, { opacity: 1, duration: 0.3 }, S.p1); tl.to("#honest", { opacity: 0, duration: 0.3 }, S.p2 + 1.5);
 
       // kinetic captions
@@ -439,7 +471,7 @@ ${subs.map((x, i) => `      <div id="s${i}" class="sub2 clip" data-start="${x.t.
         const sp = document.querySelectorAll("#" + k.id + " span");
         tl.fromTo("#" + k.id, { opacity: 0 }, { opacity: 1, duration: 0.15 }, k.at);
         sp.forEach((w, j) => tl.fromTo(w, { opacity: 0, y: 26, scale: 1.25 }, { opacity: 1, y: 0, scale: 1, duration: 0.26, ease: "back.out(2)" }, k.at + 0.05 + j * BEAT / 2));
-        tl.to(["#" + k.id, "#" + k.id + " span"], { opacity: 0, duration: 0.2 }, k.at + 1.9);
+        tl.to(["#" + k.id, "#" + k.id + " span"], { opacity: 0, duration: 0.2 }, k.at + 1.3);
       }
 
       // ---- CLOSE ----
