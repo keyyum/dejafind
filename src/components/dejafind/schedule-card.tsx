@@ -45,6 +45,18 @@ export function ScheduleCard({ onConfirmed }: { onConfirmed: () => void }) {
     };
   }, [pending]);
 
+  // If the "filed" event is missed (an SSE reconnect), keep checking until the timetable has its thumbnail.
+  const waiting = !!doc && !doc.thumbUrl;
+  useEffect(() => {
+    if (!waiting || !pending) return;
+    const t = setInterval(() => {
+      void getDocument(pending.documentId)
+        .then((d) => d.thumbUrl && setDoc(d))
+        .catch(() => {});
+    }, 3000);
+    return () => clearInterval(t);
+  }, [waiting, pending]);
+
   if (!pending) return null;
 
   const differs = !!confirmedSection && !!pending.section && pending.section !== confirmedSection;
@@ -77,7 +89,11 @@ export function ScheduleCard({ onConfirmed }: { onConfirmed: () => void }) {
     >
       {doc && (
         <div className="w-[140px] shrink-0">
-          <Paper doc={doc} src={doc.thumbUrl ?? `/api/thumb/${doc.id}`} maxAspect={1.1} />
+          {doc.thumbUrl ? (
+            <Paper doc={doc} maxAspect={1.1} />
+          ) : (
+            <Paper doc={{ ...doc, width: 4, height: 3 }} src={null} className="df-sweep bg-muted" />
+          )}
         </div>
       )}
       <div className="flex min-w-[280px] flex-1 flex-col gap-2">

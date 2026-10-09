@@ -1,4 +1,6 @@
+"use client";
 /* eslint-disable @next/next/no-img-element -- thumbnails come from local routes at their real size */
+import { useEffect, useState } from "react";
 import type { DocumentSummary } from "@/lib/api-types";
 import { isScreenshot } from "@/lib/client/format";
 import { cn } from "@/lib/utils";
@@ -26,6 +28,16 @@ export function Paper({
   const w = doc.width || 4;
   const h = Math.min(doc.height || 3, (doc.width || 4) * maxAspect);
   const url = src === undefined ? doc.thumbUrl : src;
+  // A thumbnail can 404 for a moment while the pipeline writes it. Hide the broken
+  // image and ask again a few times with a cache-buster instead of showing the icon.
+  const [attempt, setAttempt] = useState({ url, n: 0, failed: false });
+  const current = attempt.url === url ? attempt : { url, n: 0, failed: false };
+  useEffect(() => {
+    if (!current.failed || current.n >= 6) return;
+    const t = setTimeout(() => setAttempt({ url, n: current.n + 1, failed: false }), 800 * (current.n + 1));
+    return () => clearTimeout(t);
+  }, [current.failed, current.n, url]);
+  const shown = url && current.n > 0 ? `${url}${url.includes("?") ? "&" : "?"}r=${current.n}` : url;
   return (
     <div
       className={cn(
@@ -35,9 +47,11 @@ export function Paper({
       )}
       style={{ aspectRatio: `${w} / ${h}` }}
     >
-      {url && (
+      {shown && !current.failed && (
         <img
-          src={url}
+          key={shown}
+          src={shown}
+          onError={() => setAttempt({ url, n: current.n, failed: true })}
           alt=""
           width={w}
           height={h}
