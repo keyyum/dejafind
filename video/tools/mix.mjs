@@ -62,7 +62,7 @@ const meas = JSON.parse(String(m.stderr ?? "").match(/\{[\s\S]*\}/)?.[0] ?? "{}"
 const second = meas.input_i
   ? `loudnorm=I=-16:TP=-3.0:LRA=9:measured_I=${meas.input_i}:measured_TP=${meas.input_tp}:measured_LRA=${meas.input_lra}:measured_thresh=${meas.input_thresh}:offset=${meas.target_offset}:linear=true`
   : "loudnorm=I=-16:TP=-3.0:LRA=9";
-ff("-i", pre, "-af", `${second},aresample=48000`, "-ac", "2", `${A}${tag}-mix.wav`);
+ff("-i", pre, "-af", `${second},aresample=192000,alimiter=limit=0.66:level=disabled:attack=1:release=60,aresample=48000`, "-ac", "2", `${A}${tag}-mix.wav`);
 
 const tmp = video.replace(/\.mp4$/, ".mux.mp4");
 ff("-i", video, "-i", `${A}${tag}-mix.wav`, "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-ac", "2",
