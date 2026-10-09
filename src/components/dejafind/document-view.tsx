@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeftIcon, Loader2Icon } from "lucide-react";
+import { ArrowLeftIcon, ChevronRightIcon, Loader2Icon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { DateFound, DocumentDetail, SearchResult, SubjectsResponse, WordsResponse } from "@/lib/api-types";
 import { lineForWord, rowsOf, wordsForLine } from "@/lib/client/lens";
@@ -22,7 +22,7 @@ import { useDejaEvent } from "./events";
 import { Highlight, queryTerms, termSpans } from "./highlight";
 import { Paper } from "./paper";
 import { SiteHeader } from "./site-header";
-import { Zoomable } from "./zoomable";
+import { Zoomable, type PageMode } from "./zoomable";
 
 function isSoon(isoDate: string): boolean {
   const t = new Date(`${isoDate}T23:59:59`).getTime();
@@ -67,6 +67,9 @@ export function DocumentView() {
   const [words, setWords] = useState<WordsResponse | null>(null);
   const [lit, setLit] = useState<ReadonlySet<number>>(new Set());
   const [activeLine, setActiveLine] = useState<number | null>(null);
+  const [mode, setMode] = useState<PageMode>("fit");
+  // Summary first: the full text stays folded unless you came from a search or tapped a word.
+  const [textOpen, setTextOpen] = useState(!!q);
   const lineRefs = useRef(new Map<number, HTMLElement>());
 
   const load = useCallback(() => {
@@ -119,6 +122,7 @@ export function DocumentView() {
     const { line, row } = lineForWord(index, words.words, rows, lines);
     setLit(new Set(row));
     setActiveLine(line >= 0 ? line : null);
+    if (line >= 0) setTextOpen(true);
   };
   const onLineTap = (li: number) => {
     if (!words) return;
@@ -138,15 +142,16 @@ export function DocumentView() {
     );
   }
 
+  // Back goes where you came from, by address, never through history: the search results
+  // when the document was opened from search, otherwise the Library. No loops, no dialogs.
   const back = (
-    <button
-      type="button"
-      onClick={() => (window.history.length > 1 ? router.back() : router.push("/"))}
+    <Link
+      href={q ? `/search?q=${encodeURIComponent(q)}` : "/"}
       className="inline-flex items-center gap-2 rounded-sm text-[17px] text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
     >
       <ArrowLeftIcon className="size-5" aria-hidden />
-      {q ? "Back to results" : "Back"}
-    </button>
+      {q ? "Back to results" : "Back to Library"}
+    </Link>
   );
 
   if (!doc) {
@@ -159,6 +164,8 @@ export function DocumentView() {
   }
 
   const reading = doc.status === "queued" || doc.status === "reading";
+  // Study actions only for class material: no quiz on a receipt or a timetable.
+  const studyable = !!doc.subjectId && doc.docType !== "other" && doc.docType !== "schedule";
   const imageSrc = doc.kind === "pdf" ? doc.thumbUrl : (doc.cleanUrl ?? doc.fileUrl);
 
   const saveTitle = (title: string) => {
@@ -193,6 +200,7 @@ export function DocumentView() {
               width={doc.width}
               height={doc.height}
               rounded={isScreenshot(doc)}
+              mode={mode}
               words={words}
               lit={lit}
               onWordTap={onWordTap}
@@ -205,7 +213,22 @@ export function DocumentView() {
               {kindWord(doc)}
               {doc.pages > 1 ? `, ${doc.pages} pages` : ""} · {doc.width}×{doc.height}
             </span>
-            <span>Click to zoom</span>
+            <span role="group" aria-label="Page size" className="inline-flex rounded-full border border-border p-0.5">
+              {(["fit", "actual"] as const).map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  aria-pressed={mode === m}
+                  onClick={() => setMode(m)}
+                  className={cn(
+                    "rounded-full px-3 py-0.5 outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    mode === m ? "bg-foreground text-background" : "hover:text-foreground",
+                  )}
+                >
+                  {m === "fit" ? "Fit" : "1:1"}
+                </button>
+              ))}
+            </span>
           </figcaption>
         </figure>
 
@@ -293,10 +316,24 @@ export function DocumentView() {
           {doc.text && (
             <section aria-labelledby="text-heading" className="flex flex-col gap-3">
               <div className="flex items-baseline justify-between gap-4">
-                <h2 id="text-heading" className="text-[17px] font-medium text-muted-foreground">Text it read</h2>
-                {words && <span className="text-[15px] text-muted-foreground">Tap a word on the page or a line here</span>}
+                <h2 id="text-heading" className="text-[17px] font-medium text-muted-foreground">
+                  <button
+                    type="button"
+                    aria-expanded={textOpen}
+                    aria-controls="text-it-read"
+                    onClick={() => setTextOpen((o) => !o)}
+                    className="inline-flex items-center gap-2 rounded-sm outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <ChevronRightIcon className={cn("size-4 transition-transform", textOpen && "rotate-90")} aria-hidden />
+                    Text it read
+                    <span className="font-normal tabular-nums">· {lines.filter((l) => l.trim()).length} lines</span>
+                  </button>
+                </h2>
+                {words && textOpen && <span className="text-[15px] text-muted-foreground">Tap a word on the page or a line here</span>}
               </div>
+              {textOpen && (
               <div
+                id="text-it-read"
                 tabIndex={0}
                 className="df-paint max-h-[300px] overflow-auto rounded-xl border border-hairline bg-white px-5 py-4 text-[16px] leading-relaxed whitespace-pre-wrap text-ink-soft outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
@@ -326,6 +363,7 @@ export function DocumentView() {
                   <Highlight text={doc.text} spans={spans} />
                 )}
               </div>
+              )}
               {doc.readMs != null && (
                 <p className="text-[15px] text-muted-foreground">Read on this laptop in {seconds(doc.readMs)}</p>
               )}
@@ -333,9 +371,11 @@ export function DocumentView() {
           )}
 
           <nav aria-label="Document actions" className="flex flex-wrap items-baseline gap-x-7 gap-y-3 border-t border-hairline pt-6 text-[17px]">
-            <Link href={`/quiz?documents=${doc.id}`} className="rounded-sm font-semibold underline decoration-foreground/40 decoration-2 underline-offset-[6px] outline-none hover:decoration-foreground focus-visible:ring-2 focus-visible:ring-ring">
-              Quiz me on this
-            </Link>
+            {studyable && (
+              <Link href={`/quiz?documents=${doc.id}`} className="rounded-sm font-semibold underline decoration-foreground/40 decoration-2 underline-offset-[6px] outline-none hover:decoration-foreground focus-visible:ring-2 focus-visible:ring-ring">
+                Quiz me on this
+              </Link>
+            )}
             <button
               type="button"
               onClick={() => void getSimilar(doc.id).then((r) => setSimilar(r.results)).catch(() => setSimilar([]))}
@@ -384,7 +424,7 @@ export function DocumentView() {
                 <ul className="grid grid-cols-3 gap-5">
                   {similar.slice(0, 6).map((r) => (
                     <li key={r.document.id}>
-                      <Link href={`/d/${r.document.id}`} className="flex flex-col gap-2 rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                      <Link href={`/d/${r.document.id}${q ? `?q=${encodeURIComponent(q)}` : ""}`} className="flex flex-col gap-2 rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring">
                         <Paper doc={r.document} maxAspect={1.33} />
                         <span className="line-clamp-2 text-[15px] leading-snug">{r.document.title}</span>
                       </Link>

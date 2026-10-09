@@ -220,6 +220,13 @@ export function LibraryView() {
   }, [filter, groups]);
 
   const empty = groups && groups.length === 0;
+  // Day headers only help once the library is big; until then it is one grid.
+  const docCount = groups?.reduce((n, g) => n + g.documents.length, 0) ?? 0;
+  const grouped = docCount > 20;
+  const displayGroups =
+    groups && !grouped && groups.length > 0
+      ? [{ day: "all", label: "Your documents", documents: groups.flatMap((g) => g.documents) }]
+      : groups;
   const calm = isBulkRunning();
 
   return (
@@ -236,7 +243,7 @@ export function LibraryView() {
         <SubjectFilters
           subjects={subjects}
           active={filter}
-          hrefFor={(f) => (f === "all" ? "/" : `/?subject=${encodeURIComponent(f)}`)}
+          hrefFor={(f) => (f === "all" ? "/" : f === "schedule" ? "/schedule" : `/?subject=${encodeURIComponent(f)}`)}
           quizHref={quizHref}
           flashcardsHref={quizHref?.replace("/quiz?", "/flashcards?")}
           reviewHref={quizHref?.startsWith("/quiz?subject=") ? quizHref.replace("/quiz?", "/review?") : null}
@@ -282,9 +289,9 @@ export function LibraryView() {
         )}
 
         <div className="flex flex-col gap-12">
-          {groups?.map((g) => (
+          {displayGroups?.map((g) => (
             <motion.section layout={calm ? false : "position"} key={g.day} aria-label={g.label} className="flex flex-col gap-5">
-              <h2 className="text-[17px] font-medium text-muted-foreground">{g.label}</h2>
+              <h2 className={displayGroups.length === 1 && !grouped ? "sr-only" : "text-[17px] font-medium text-muted-foreground"}>{g.label}</h2>
               <div className="columns-1 gap-7 sm:columns-2 lg:columns-3 xl:columns-4">
                 {g.documents.map((d) => (
                   <motion.div

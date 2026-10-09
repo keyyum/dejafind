@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
+import type { ImportResponse } from "@/lib/api-types";
 import { importFiles } from "@/lib/client/api";
 import { useDejaEvent } from "./events";
 
@@ -48,7 +49,8 @@ interface Batch {
   total: number;
 }
 
-const ImportContext = createContext<(files: File[] | Blob[], source?: "snap" | "drop") => Promise<void>>(async () => {});
+type Send = (files: File[] | Blob[], source?: "snap" | "drop") => Promise<ImportResponse | null>;
+const ImportContext = createContext<Send>(async () => null);
 
 /** Sends files to /api/import and tracks them as one batch for the progress line. */
 export function useImport() {
@@ -63,13 +65,14 @@ export function ImportDrop({ children }: { children: ReactNode }) {
   const depth = useRef(0);
 
   const send = useCallback(
-    async (files: File[] | Blob[], source?: "snap" | "drop") => {
+    async (files: File[] | Blob[], source?: "snap" | "drop"): Promise<ImportResponse | null> => {
       const list = [...files].filter((f) => !(f instanceof File) || ACCEPT.test(f.name));
       if (!list.length) {
         toast("Nothing to add. DéjàFind reads images and PDFs.");
-        return;
+        return null;
       }
-      if (window.location.pathname !== "/") router.push("/");
+      // Snap keeps its sheet open and shows progress there; drops jump to the Library.
+      if (source !== "snap" && window.location.pathname !== "/") router.push("/");
       if (list.length > 1) {
         bulkUntil = Date.now() + 10_000;
         bulkRunning = true;
@@ -82,10 +85,12 @@ export function ImportDrop({ children }: { children: ReactNode }) {
           for (const d of res.documents) bulkIds.add(d.id);
           setBatch({ ids: new Set(res.documents.map((d) => d.id)), done: 0, total: res.documents.length });
         }
+        return res;
       } catch (e) {
         bulkRunning = false;
         bulkUntil = 0;
         toast(`Could not add files: ${e instanceof Error ? e.message : String(e)}`);
+        return null;
       }
     },
     [router],
