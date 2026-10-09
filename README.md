@@ -46,8 +46,9 @@ Keep this section current. Every model, framework, and library is listed the mom
 - Fonts via Google Fonts: Fraunces, Figtree, JetBrains Mono (OFL)
 - Ollama (local model server) and the `ollama` JS client
 - `chokidar` (folder watching), `better-sqlite3` + `sqlite-vec` + SQLite FTS5 (storage and search), `pdf-parse` (PDF text), `chrono-node` (date cross-check)
+- `sharp` (thumbnails and image cleanup; installed transitively by Next.js, imported directly by `src/server/clean.ts`)
 
-**Cloud services and APIs:** none in the product.
+**Cloud services and APIs:** none in the product. Next.js's own anonymous build telemetry is disabled on the demo machine with `npx next telemetry disable` so the outbound-request counter reads zero.
 
 **Existing code and assets:** none. Scaffolded with `create-next-app` on Oct 10 2026 during the hackathon. Sample files in `data/samples/` are synthetic.
 
