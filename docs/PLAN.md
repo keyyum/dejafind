@@ -1,74 +1,73 @@
-# Build plan, Oct 10 2026, deadline 10:00 AM Manila
+# Build plan, Oct 10 2026. Deadline 10:00 AM Manila. No extensions.
 
-Hard stops: feature freeze 06:00, submission assets 06:00 to 09:00, submit by 09:30. Code freeze 10:00.
+Written 02:15. Everything below is decided. Workers do not relitigate scope; they build their step and prove it.
+
+## Hard times
+
+| Time | What |
+|---|---|
+| 02:30 | Panes launched, worktrees ready |
+| 05:30 | Core proven end to end on the sample files (steps 1 to 7) |
+| 06:30 | UI on live data, paper tiles, snackbar, search, document, quiz |
+| 07:15 | Animations in, tier 2 in if green, everything else cut |
+| 07:15 to 08:45 | Demo video recorded and cut, pitch deck done, X/LinkedIn post up, README disclosures final |
+| 09:00 | Repo public. Submission form filled on Cerebral Valley. Read twice. Submit by 09:30 |
+| 10:00 | Code freeze. Nothing pushed after this |
 
 ## Decided stack
 
-Next.js 16 (TypeScript, Tailwind) on port 3100. Server-side modules do the local work. Ollama on localhost:11434 serves `qwen2.5vl:3b` (images), `qwen3:4b` (text, extraction, answers, quiz), `nomic-embed-text` (embeddings). `chokidar` watches folders. `better-sqlite3` + `sqlite-vec` + FTS5 in `data/dejafind.sqlite`. `pdf-parse` for PDFs. `chrono-node` cross-checks dates.
+Next.js 16 (TypeScript, Tailwind) on port 3100. Server modules do the local work. Ollama on localhost:11434: `qwen2.5vl:3b` (images), `qwen3:4b` (text, extraction, answers, quiz), `nomic-embed-text` (embeddings). `chokidar` watches folders. `better-sqlite3` + `sqlite-vec` + FTS5 in `data/dejafind.sqlite`. `pdf-parse` for PDFs. `chrono-node` cross-checks dates. OpenCV via `opencv-wasm` or `sharp` for crop and warp (worker picks, Node only, no Python).
 
 ## Data model
 
 ```
-files(id, path, kind[image|pdf|text], sha256, captured_at, title, summary, tags json, subject, text, status[queued|done|error], created_at)
-chunks(id, file_id, idx, text)            + FTS5 virtual table over text + vec table over embedding
-dates(id, file_id, iso_date, label, confidence, source_span, status[auto|review])
+documents(id, path, kind[image|pdf], sha256, captured_at, title, summary, tags json, subject_id, text, status[queued|reading|done|error], thumb_path, clean_path, width, height, read_ms, created_at)
+subjects(id, name, source[schedule|inferred], created_at)
+schedule(id, subject_id, weekday, start, end, room, section)
+chunks(id, document_id, idx, text)        + FTS5 over text + vec0 table over embedding
+dates(id, document_id, iso_date, label, confidence, span, status[auto|review|ignored])
+conversations(id, created_at) · messages(id, conversation_id, role, text, citations json)
+events(id, kind, document_id, created_at)   for the SSE stream and the snackbar
 ```
 
-## Steps, in order, each with a visible proof
+## Steps
 
-| # | Step | Owner | Box | Proof |
-|---|------|-------|-----|-------|
-| 1 | Watcher: `data/watch/` and chosen folders; new file hashed and queued in SQLite | core | 00:45 | drop a file, row appears |
-| 2 | Reader: image to vision model, PDF to text, text to text model; returns `{text,title,summary,tags,subject,dates[]}` as JSON | core | 01:30 | sample slide yields correct JSON |
-| 3 | Dates: chrono cross-check anchored to capture time; agree = auto, disagree = review | core | 00:30 | "quiz moved to Friday" resolves to the right ISO date |
-| 4 | Index: chunk, embed, FTS + vec insert | core | 00:45 | search returns the right file |
-| 5 | UI per `docs/UI.md`: Library home (paper tiles in a masonry grid, subject filters, Coming up strip, search bar), Search results, Document view, Quiz, filing snackbar, then the capture-lands and date-lift animations | ui | 03:00 | all screens render against mock, then live data; capture-lands plays on a real screenshot |
-| 5b | Ingest cleanup: document quad detection + perspective warp + background clean for photos, plain crop fallback, rounded corners for screenshots; thumbnails keep real aspect ratio | core | 01:00 | an angled slide photo becomes a flat slide tile |
-| 6 | Search: one endpoint; keyword (FTS) plus meaning (vectors) fused; results are documents with the best matching snippet; if the query is a question, also generate an answer from the top documents with citations, or "not in your documents" below threshold | core | 01:15 | "jollibee" finds the receipt, "photosynthesis equation" finds the whiteboard, "when's my bio quiz" answers with the screenshot on top |
-| 7 | Quiz: five MCQs from a subject, graded, source shown | core | 00:45 | "quiz me on Biology" yields 5 answerable questions |
-| 8 | Network panel: a visible indicator that the server made zero outbound requests during a session | ui | 00:30 | counter stays at 0 while indexing |
+Owner is a pane. Each step ends with its proof shown in the pane and a commit on the worker's branch.
 
-If time runs out, cut step 7 first, then step 8. Never cut 1 to 6.
+| # | Step | Owner | Proof |
+|---|---|---|---|
+| 1 | Watcher: `data/watch/`, `~/Desktop`, `~/Downloads`; new file hashed, deduped, queued; one-at-a-time worker loop | core | drop `data/samples/gc-bio-quiz.png`, a `documents` row appears with `status=queued` then `reading` |
+| 2 | Reader: image to `qwen2.5vl:3b` with `format:json`, PDF to `pdf-parse` then `qwen3:4b`; returns `{text,title,summary,tags,subject,dates[],doc_type}` where `doc_type` includes `schedule` | core | sample yields subject Biology and date 2026-10-17 |
+| 3 | Dates: chrono cross-check anchored to `captured_at`; agree = `auto`, disagree = `review`; dates from `Other` documents are `ignored` | core | "quiz moved to Friday" resolves correctly; a receipt date is ignored |
+| 4 | Subjects and schedule: subject rows created from reader output; a `doc_type=schedule` document parses into `schedule` rows but only after a confirm flag; filing uses schedule time match plus text | core | a timetable screenshot creates six subjects after confirm; a photo captured Mon 9:15 files under Biology |
+| 5 | Index: chunk, embed with `nomic-embed-text`, FTS + vec insert | core | FTS and vec both return the sample for "bio quiz" |
+| 6 | Search endpoint: fuse FTS and vec with reciprocal rank; results carry best snippet with match offsets; if the query is a question, answer from the top documents with `qwen3:4b`, cite document ids, "not in your documents" below threshold; multi-turn keeps the last six turns | core | "jollibee" finds the receipt, "photosynthesis equation" finds the whiteboard, "when's my bio quiz" answers with the screenshot |
+| 7 | Quiz endpoint: five MCQs from a subject or document ids, JSON schema, grade and explain, source id per question | core | "quiz me on Biology" yields five answerable questions |
+| 8 | Ingest cleanup: document quad detection + perspective warp + background clean for photos; plain crop fallback; screenshots untouched; thumbnails keep real aspect ratio; `clean_path` and `thumb_path` written | core | an angled slide photo becomes a flat slide tile |
+| 9 | Status counter: a wrapper around outbound HTTP in the Node process; `/api/status` returns requests_out, model names and sizes, measured read_ms average | core | counter stays 0 through a full ingest |
+| 10 | Library: paper tiles in a masonry grid by day, subject filters, Coming up strip, search bar, snackbar on `document.filed` | ui | renders against mock, then live |
+| 11 | Search results view with answer block and highlighted snippets | ui | live against step 6 |
+| 12 | Document view: image with highlights, understanding panel, text it read, actions | ui | live against step 2 |
+| 13 | Quiz view | ui | live against step 7 |
+| 14 | Animations: capture lands, date lifts off, highlights paint, quiz slides from source, Lens-style tap in Document view using word boxes from Apple Vision OCR if available (core exposes `/api/documents/[id]/words`; if not ready, skip tap) | ui | capture-lands plays on a real screenshot |
+| 15 | Schedule confirmation card, status panel, keyboard shortcut ⌘K for the bar, drag and drop onto the window as a second way in, bulk import progress for a dropped folder | ui | drop 20 files, progress shows, grid fills |
+| 16 | Snap button: in-app capture from the webcam or Continuity Camera via `getUserMedia`, saved into `data/watch/` so it flows through the normal pipeline | ui | hold a printed slide to the iPhone, it appears in the grid |
+| 17 | Tier 2 only after 10 to 13 are green: reviewer sheet per subject, flashcards, .ics export of Coming up | core then ui | one each, demoable in ten seconds |
 
-## Tier 2 and 3 (see PRODUCT.md), only after steps 1 to 8 are proven
+Cut order if behind at 07:15: 17, then 16, then the Lens tap in 14, then 15's bulk import. Never cut 1 to 13.
 
-| # | Step | Box | Gate |
-|---|------|-----|------|
-| 9 | Reviewer sheet per subject, cited lines | 00:30 | after 05:00, core proven |
-| 10 | Flashcards per subject, flip UI | 00:45 | after step 9 |
-| 11 | Export timeline as .ics | 00:20 | after step 10 |
-| 12 | Reminders via macOS notification | 00:30 | only before 07:00 |
-| 13 | Study streak (quiz days) | 00:20 | only before 07:00 |
-| 14 | Clean notes from a whiteboard photo | 00:45 | only before 07:00 |
+## Measured baseline (02:00, Apple M4 16 GB, Ollama 0.40.2)
 
-Hard stop 07:00. Then video, post, form.
+`qwen2.5vl:3b` on `data/samples/gc-bio-quiz.png`, `format: json`, temperature 0: verbatim text, subject Biology, date 2026-10-17. 20.0 s cold, 5.1 s generation. Keep models warm (`keep_alive: -1`) and never cold-load on stage.
 
-Run order per worker: `npm run dev` on the main tree, workers on worktrees use `-p 3101`, `-p 3102`.
+## Demo script, 60 seconds, also the live pitch demo
 
-## Demo script, 60 seconds
+1. Library open on the projector. Status reads "On this laptop · nothing sent".
+2. "Here's my class schedule from the registrar." Screenshot it. The confirmation card appears, tap Use it, six subjects appear as filters.
+3. Screenshot the prepared fake GC message "Bio quiz moved to Oct 17, chapters 4 and 5". Say nothing. The tile flies in, the light bar sweeps, the title types in, "filed under Biology", the Oct 17 chip lifts into Coming up. Snackbar.
+4. Hold a printed Biology slide to the iPhone with the Snap button. Flat slide tile lands, filed under Biology.
+5. Type "when's my bio quiz". Answer on top, screenshot beside it with the lines highlighted. Click it, the Document view shows what it read.
+6. Wi-Fi off, visibly. Drop one more file. Still works, counter still 0.
+7. "Quiz me on Biology." Answer one aloud, graded with the slide shown.
 
-1. App open on Files view, Wi-Fi visibly on for now. Network panel reads 0.
-2. Take a screenshot of a prepared fake group-chat message: "Bio quiz moved to Oct 17, chapters 4 and 5." Two seconds later it appears in Files with a title and summary, and Oct 17 appears on the Timeline with the screenshot beside it. Nobody touched the app.
-3. Hold a printed Biology slide to the camera (Continuity Camera or a photo dropped into the watch folder). It files under Biology with a summary.
-4. Ask: "when's my bio quiz and what's it on". Answer cites the screenshot and shows it.
-5. Turn Wi-Fi off. Drop one more file. Still works. Network panel still 0.
-6. "Quiz me on Biology", answer one question out loud, graded with the slide shown.
-
-Say out loud: the model names, their sizes, and the measured time per file on this M4 with 16 GB.
-
-## Submission checklist (owner: pitch)
-
-- Public GitHub repo by 09:30 with README: what runs locally, what needs internet (nothing in the core), models, frameworks, APIs, existing code or assets, AI dev tools used.
-- 1-minute demo video recorded from the laptop screen with a phone shot of the camera step.
-- Post the video on X or LinkedIn tagging Cognition and #AppBuildersPH. Paste the URL.
-- Cerebral Valley form: project name, short description, team members exactly as on the official list, final team name, repo URL, video, post URL, disclosures paragraph, answer to "why does this product benefit from running AI locally".
-- One submission per team, no edits after. Read it twice.
-- Record a 60-second backup video of the working demo in case the live one dies.
-
-## Demo-day prep (Oct 10, 12:00 at Cyberzone SM Makati)
-
-Warm every model before stage. Grant camera and screen recording to the exact browser used. Host all model files locally and test with Wi-Fi off. Bring HDMI and USB-C. Print two Biology slides and one fake schedule. Keep canned sample files in `data/samples/`.
-
-## Measured baseline (Oct 10 2026, 00:42, Apple M4 16 GB, Ollama 0.40.2)
-
-`qwen2.5vl:3b` on `data/samples/gc-bio-quiz.png` with `format: json`, temperature 0: returned verbatim text, title "Biology Quiz Moved to October 17", subject Biology, date 2026-10-17. Total 20.0 s on a cold load, of which 5.1 s was generation. Expect roughly 5 to 8 s per image once the model is warm. Keep the model warm during the demo (`keep_alive`), and never cold-load on stage.
+Say out loud: three models, 3B vision, 4B text, 270 MB embeddings, measured seconds per document on this M4.
