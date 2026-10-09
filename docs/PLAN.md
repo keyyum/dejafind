@@ -23,7 +23,7 @@ dates(id, file_id, iso_date, label, confidence, source_span, status[auto|review]
 | 3 | Dates: chrono cross-check anchored to capture time; agree = auto, disagree = review | core | 00:30 | "quiz moved to Friday" resolves to the right ISO date |
 | 4 | Index: chunk, embed, FTS + vec insert | core | 00:45 | search returns the right file |
 | 5 | UI per `docs/UI.md`: top bar with Ask and status pill, Subjects home, Subject view, Timeline, Quiz screen, ingest toast | ui | 02:30 | all screens render against mock, then live data |
-| 6 | Ask: hybrid retrieval, answer with file id citation, refuse below threshold, show source file | core | 01:00 | "when's my bio quiz" answers with photo |
+| 6 | Ask: hybrid retrieval, answer with file id citation, refuse below threshold, show source file; multi-turn with the last six turns in context, retrieval re-run each turn, conversations stored in SQLite; Explain switch off by default, labeled when on | core | 01:30 | "when's my bio quiz" answers with photo, then "what's chapter 5 about" resolves to Biology |
 | 7 | Quiz: five MCQs from a subject, graded, source shown | core | 00:45 | "quiz me on Biology" yields 5 answerable questions |
 | 8 | Network panel: a visible indicator that the server made zero outbound requests during a session | ui | 00:30 | counter stays at 0 while indexing |
 

@@ -17,7 +17,7 @@ Class materials only: photos of slides and whiteboards, handouts, GC screenshots
 ## Core four for the demo
 
 1. **Snap, file, timeline.** A new photo, screenshot, or PDF is read, titled, summarized, and filed under its subject by itself. Every date found lands on one timeline with the source beside it. The home screen is Subjects, not files; open Biology and you see this week's captures, the next deadline, and a "quiz me" button.
-2. **Ask your notes.** "When's my bio quiz?" "What did sir say about mitosis?" Answers come only from your own captures, scoped to a subject or all, cite the capture, and show it. If nothing matches, it says "not in your notes".
+2. **Ask your notes.** "When's my bio quiz?" "What did sir say about mitosis?" Answers come only from your own captures, scoped to a subject or all, cite the capture, and show it. If nothing matches, it says "not in your notes". It is a conversation: follow-ups like "explain that simpler" or "what's chapter 5 about" keep the context of the last few turns. An optional **Explain** switch, off by default, lets the model add general knowledge, always labeled "not from your notes". Never call it a chatbot on stage; it is "ask your notes, and it remembers the conversation".
 3. **Summary on every capture.** Title, one-line summary, tags. IMG_4821 becomes "Bio lecture 5, cell division, quiz Oct 17".
 4. **Quiz me.** "Quiz me on Biology": five questions generated from your own captures, graded, with the source shown. This is core. It is the first thing cut if time runs out, but a study brain that does not quiz you is a folder.
 
