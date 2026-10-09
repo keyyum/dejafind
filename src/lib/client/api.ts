@@ -133,7 +133,7 @@ export function getSchedule(): Promise<ScheduleResponse> {
 }
 
 export function confirmSchedule(req: ScheduleConfirmRequest): Promise<ScheduleConfirmResponse> {
-  if (USE_MOCK) return delay(mock.mockSchedule());
+  if (USE_MOCK) return delay(mock.mockConfirmSchedule(req.confirm));
   return request("/api/schedule", { method: "POST", body: JSON.stringify(req) });
 }
 
@@ -212,4 +212,9 @@ export function simulateCapture(startDelay = 0): DocumentSummary {
     emitMock({ type: "document.filed", document: done, dates, newSubjects: [], readMs: 4800 });
   }, startDelay + 4200);
   return queued;
+}
+
+/** Mock only: a timetable screenshot arrives and asks "Is it yours?". */
+export function simulateSchedule() {
+  emitMock({ type: "schedule.pending", pending: mock.mockPendingSchedule() });
 }

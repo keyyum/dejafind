@@ -4,11 +4,12 @@ import { toast } from "sonner";
 import { patchDocument } from "@/lib/client/api";
 import { kindWord, monthDay } from "@/lib/client/format";
 import { useDejaEvent } from "./events";
+import { isBulkImport } from "./import-drop";
 
 /** "Screenshot filed under Biology · Oct 17 added to Coming up", with Undo. */
 export function FilingSnackbar() {
   useDejaEvent((e) => {
-    if (e.type !== "document.filed") return;
+    if (e.type !== "document.filed" || isBulkImport(e.document.id)) return;
     const doc = e.document;
     const where = doc.subjectName ? `filed under ${doc.subjectName}` : "filed under Other";
     const first = e.dates[0];

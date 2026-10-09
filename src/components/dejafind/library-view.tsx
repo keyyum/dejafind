@@ -16,6 +16,8 @@ import { DateFlight, Landing, type Flight } from "./capture-motion";
 import { ComingUp } from "./coming-up";
 import { DocTile } from "./doc-tile";
 import { useDejaEvent } from "./events";
+import { isBulkImport, isBulkRunning } from "./import-drop";
+import { ScheduleCard } from "./schedule-card";
 import { SearchBar } from "./search-bar";
 import { SiteHeader } from "./site-header";
 import { SubjectFilters } from "./subject-filters";
@@ -117,7 +119,7 @@ export function LibraryView() {
     switch (e.type) {
       case "document.queued":
         if (filter === "all") {
-          setArrivals((a) => new Set(a).add(e.document.id));
+          if (!isBulkImport(e.document.id)) setArrivals((a) => new Set(a).add(e.document.id));
           setGroups((g) => upsert(g ?? [], e.document));
         }
         break;
@@ -131,7 +133,7 @@ export function LibraryView() {
           filter === doc.subjectId ||
           (filter === "other" && doc.subjectId === null) ||
           (filter === "schedule" && doc.docType === "schedule");
-        if (belongs) {
+        if (belongs && !isBulkImport(doc.id)) {
           const seen = groups?.some((g) => g.documents.some((d) => d.id === doc.id));
           if (!seen) setArrivals((a) => new Set(a).add(doc.id));
           setTyping((t) => new Set(t).add(doc.id));
@@ -204,6 +206,7 @@ export function LibraryView() {
   }, [filter, groups]);
 
   const empty = groups && groups.length === 0;
+  const calm = isBulkRunning();
 
   return (
     <>
@@ -219,6 +222,12 @@ export function LibraryView() {
           quizHref={quizHref}
         />
         <ComingUp entries={timeline} hidden={hiddenDates} />
+        <ScheduleCard
+          onConfirmed={() => {
+            void loadDocs();
+            loadSide();
+          }}
+        />
 
         {error && (
           <p className="text-[17px] text-muted-foreground">
@@ -239,12 +248,12 @@ export function LibraryView() {
 
         <div className="flex flex-col gap-12">
           {groups?.map((g) => (
-            <motion.section layout="position" key={g.day} aria-label={g.label} className="flex flex-col gap-5">
+            <motion.section layout={calm ? false : "position"} key={g.day} aria-label={g.label} className="flex flex-col gap-5">
               <h2 className="text-[17px] font-medium text-muted-foreground">{g.label}</h2>
               <div className="columns-1 gap-7 sm:columns-2 lg:columns-3 xl:columns-4">
                 {g.documents.map((d) => (
                   <motion.div
-                    layout="position"
+                    layout={calm ? false : "position"}
                     transition={{ type: "spring", stiffness: 260, damping: 30 }}
                     key={d.id}
                     data-doc-id={d.id}

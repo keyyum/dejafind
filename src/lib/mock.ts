@@ -10,6 +10,7 @@ import type {
   DocumentSummary,
   DocumentsResponse,
   Quiz,
+  SchedulePending,
   ScheduleResponse,
   SearchResponse,
   StatusResponse,
@@ -448,8 +449,41 @@ export function mockTimeline(): { entries: TimelineEntry[] } {
   return { entries };
 }
 
+const scheduleState: ScheduleResponse = { section: null, entries: [], pending: null };
+
 export function mockSchedule(): ScheduleResponse {
-  return { section: null, entries: [], pending: null };
+  return scheduleState;
+}
+
+export function mockPendingSchedule(): SchedulePending {
+  const day = (weekday: 0 | 1 | 2 | 3 | 4 | 5 | 6, subjectName: string, start: string, end: string, room: string) => ({
+    subjectName,
+    weekday,
+    start,
+    end,
+    room,
+    section: "BSCS 2-B",
+  });
+  scheduleState.pending = {
+    documentId: "doc-schedule",
+    section: "BSCS 2-B",
+    subjects: ["Biology", "Calculus", "Filipino", "Physics", "Data Structures", "PE 3"],
+    entries: [
+      day(1, "Biology", "09:00", "10:30", "Rm 204"),
+      day(2, "Calculus", "10:30", "12:00", "Rm 301"),
+      day(1, "Filipino", "13:00", "14:30", "Rm 105"),
+      day(5, "Physics", "08:00", "11:00", "Lab 2"),
+      day(3, "Data Structures", "13:00", "16:00", "CL 1"),
+      day(4, "PE 3", "15:00", "17:00", "Gym"),
+    ],
+  };
+  return scheduleState.pending;
+}
+
+export function mockConfirmSchedule(confirm: boolean): ScheduleResponse {
+  if (confirm && scheduleState.pending) scheduleState.section = scheduleState.pending.section;
+  scheduleState.pending = null;
+  return scheduleState;
 }
 
 export function mockSearch(q: string, subjectId?: string | null): SearchResponse {
