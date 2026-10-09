@@ -99,6 +99,17 @@ const jobs = {
   },
 };
 const FULL = { x: 0, y: 0, w: 1536, h: 864 };
+// v2: the tighter 55 s cut (no hold over ~2.5 s without motion).
+jobs.v2 = () => {
+  const w = load("watch"), sn = load("snap"), f = load("find"), q = load("quiz");
+  cut("v2-watch", `${T}watch-${take}.mp4`, [{ from: w.drop + 0.2, to: w.drop + 2.2 }, { from: w.idle - 0.3, to: w.idle + 3.9 }], libRect(w), 1250);
+  cut("v2-snaplib", `${T}snap-${take}.mp4`, [{ from: sn.shutter + 1.0, to: sn.shutter + 2.0 }, { from: sn.idle - 0.3, to: sn.idle + 2.8 }], libRect(sn), 1250);
+  const i = f.rects.input;
+  cut("v2-type", `${T}find-${take}.mp4`, [{ from: f.type - 0.1, to: f.enter + 0.5 }], { x: i.x - 71, y: i.y - 27, w: 928, h: 84 }, 1500);
+  cut("v2-answer", `${T}find-${take}.mp4`, [{ from: f.answer - 0.3, to: f.answer + 3.0 }], pad(f.rects.answer, 18), 1600);
+  const r = union(q.rects.question, q.rects.graded ?? q.rects.question2);
+  cut("v2-quiz", `${T}quiz-${take}.mp4`, [{ from: q.questions - 0.2, to: q.questions + 0.8 }, { from: q.pick - 0.15, to: q.pick + 3.8 }], pad(r, 22), 880);
+};
 // The 90-second backup: full-frame footage of the whole live-demo script.
 jobs.backup = () => {
   const { writeFileSync } = require_fs;
@@ -117,6 +128,6 @@ jobs.backup = () => {
 };
 
 for (const [k, fn] of Object.entries(jobs)) {
-  if (only ? only !== k : k === "backup") continue;
+  if (only ? only !== k : k === "backup" || k === "v2") continue;
   try { fn(); } catch (e) { console.log(`skip ${k}: ${e.message}`); }
 }

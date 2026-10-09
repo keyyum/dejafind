@@ -115,3 +115,78 @@ run's text model was not pre-warmed immediately before the call.
 First call (compiles `scripts/ocr-words.swift` with `swiftc`, then runs):
 completes in ~5 s total end to end against `gc-biology-quiz-oct17.png`
 through the live route. Word boxes line up with the rendered text.
+
+## Speed pass
+
+Three things tried; one shipped as a real win, one shipped with no measured
+effect (kept anyway for the robustness it buys), one reverted. This machine
+had heavy ambient load while the full-set numbers below were measured
+(other squad panes' Chrome instances, a video render) — load average 12+ on
+what's normally near-idle — so absolute read times in this section run
+higher than earlier in this document. Where that matters, numbers below are
+isolated same-call-back-to-back comparisons instead, which stay valid under
+shared load since both sides of a comparison absorb the same contention.
+
+### 1. Precompute cache for quiz/flashcards/review — shipped, large win
+
+After a document files into a subject, a 20 s debounced background job
+(one at a time, lowest priority — it polls and waits whenever the read
+pipeline has anything `queued`/`reading`, never races it) generates quiz,
+flashcards, and review for that subject and caches each keyed by the
+subject's current sorted document-id set. The three POST endpoints check
+the cache first: if the subject's filed document set hasn't changed since
+the cache was written, they return it instantly; otherwise they generate
+live exactly as before. All three responses now carry `cachedAt` (ISO
+string when served from cache, `null` when generated live this call) — a
+superset field, `api-types.ts` untouched.
+
+Proof, live: filed one document into a fresh Biology subject, waited for
+the debounced job. `quiz` cached at T+0s, `flashcards` cached at T+16s
+(sequential, one at a time, as designed). A `POST /api/quiz` against that
+subject afterward: **1.47 s** (was a fresh ~40–70 s generation),
+`cachedAt` set to the precompute timestamp. `review` failed to precompute
+once in this run (a genuine model JSON failure on retry, logged and
+skipped — the queue moved on to the next kind without blocking); the live
+`review` endpoint still answered correctly on demand (`cachedAt: null`,
+4 lines, 5.6 s), confirming a precompute miss degrades to today's
+behavior rather than breaking anything.
+
+### 2. `num_predict` caps + tighter prompts — shipped, no measured speed effect, kept for robustness
+
+Reader `tags` narrowed to 3–5 (was 3–6), quiz `explanation` to "one
+sentence" (was "one line" — already close), `num_predict: 1024` added to
+both reader calls, `num_predict: 700` added to the quiz call. Isolated
+same-call comparison (both sides run back-to-back on this machine, so
+ambient load cancels out), 1280px, otherwise identical prompts:
+
+| File | Before | After |
+|---|---|---|
+| `gc-biology-quiz-oct17.png` (vision) | 23.5 s | 27.2 s |
+| `bio-mitosis-slide.jpg` (vision) | 8.9 s | 11.2 s |
+| `physics-lab-handout.pdf` (text) | 58.9 s | 53.8 s |
+
+No consistent direction — within noise. Expected in hindsight: `num_predict`
+only caps the *maximum* tokens generated; on inputs that already finish
+well under the cap (all of ours do), it changes nothing about generation
+time. Its actual value is bounding worst-case runaway generation (the
+token-repeat-limit failures documented earlier in this doc), not everyday
+speed. Kept because it's free insurance, not because it's faster. Subject
+and title were unchanged on all three files.
+
+### 3. `MAX_IMAGE_DIMENSION` 1024 (was 1280) — reverted, broke a sample
+
+Tried first since it has the clearest theoretical speed case (fewer pixels
+= fewer vision tokens). Live-tested against all 11 demo files: one broke.
+`sanaysay-wika-kultura.jpg` filed under a new inferred subject **"Bscs
+2-a"** at 1024px instead of matching the existing schedule subject
+**"Filipino"** — isolated and confirmed directly (same prompt, same
+image, only the resize dimension changed):
+
+| Dimension | subject | title |
+|---|---|---|
+| 1024px | `BSCS 2-A` (wrong — the chat-header bug this file exists to guard against) | `Sanaysay: Wika at Kultura` |
+| 1280px | `Filipino` (correct) | `Sanaysay: Wika at Kultura` |
+
+Per the brief ("keep only if all files keep the same subject and dates"),
+reverted to 1280px. `MAX_IMAGE_DIMENSION` is unchanged from before this
+pass.
