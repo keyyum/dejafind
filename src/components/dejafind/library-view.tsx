@@ -168,11 +168,15 @@ export function LibraryView() {
           </p>
         )}
         {empty && (
-          <p className="py-16 text-[19px] text-muted-foreground">
+          <div className="flex flex-col items-start gap-6 py-12">
+            {/* eslint-disable-next-line @next/next/no-img-element -- static brand illustration */}
+            <img src="/brand/empty-library.svg" alt="" className="w-[280px]" />
+            <p className="text-[19px] text-muted-foreground">
             {filter === "all"
               ? "Nothing here yet. Take a screenshot, save a PDF to Downloads, or drop files on this window."
               : "No documents filed here yet."}
-          </p>
+            </p>
+          </div>
         )}
 
         <div className="flex flex-col gap-12">
