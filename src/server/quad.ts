@@ -1,17 +1,20 @@
+import { createRequire } from "node:module";
 import sharp from "sharp";
 
-// @techstark/opencv-js's default export is a Promise that resolves to the cv
-// namespace once its WASM runtime finishes initializing (~200ms). Load once per
-// process and reuse; cv has no useful TypeScript types for this build, hence any.
+const nodeRequire = createRequire(import.meta.url);
+
+// @techstark/opencv-js sets module.exports to a Promise that resolves to the cv
+// namespace once its WASM runtime finishes initializing (~200ms). It must be loaded
+// with require(), not import(): the ESM namespace built from a CommonJS Promise
+// carries Promise.prototype.then as a named export, so `await import()` calls that
+// `then` with the namespace as receiver and throws "incompatible receiver".
+// Load once per process and reuse; cv has no useful TypeScript types for this build.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let cvPromise: Promise<any> | null = null;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getCv(): Promise<any> {
   if (!cvPromise) {
-    cvPromise = import("@techstark/opencv-js").then((mod) => {
-      const candidate = mod.default;
-      return candidate instanceof Promise ? candidate : candidate;
-    });
+    cvPromise = Promise.resolve(nodeRequire("@techstark/opencv-js"));
   }
   return cvPromise;
 }

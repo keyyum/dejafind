@@ -10,7 +10,7 @@ const nextConfig: NextConfig = {
   // Next.js version; that's a real outbound request our requestsOut counter
   // correctly flags, and the demo needs requestsOut at 0 with Wi-Fi off.
   devIndicators: false,
-  serverExternalPackages: ["better-sqlite3", "sqlite-vec", "sharp", "pdf-parse"],
+  serverExternalPackages: ["better-sqlite3", "sqlite-vec", "sharp", "pdf-parse", "@techstark/opencv-js"],
   turbopack: {
     rules: {
       "*.css": {
