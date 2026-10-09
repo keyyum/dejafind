@@ -29,6 +29,19 @@ dates(id, file_id, iso_date, label, confidence, source_span, status[auto|review]
 
 If time runs out, cut step 7 first, then step 8. Never cut 1 to 6.
 
+## Tier 2 and 3 (see PRODUCT.md), only after steps 1 to 8 are proven
+
+| # | Step | Box | Gate |
+|---|------|-----|------|
+| 9 | Reviewer sheet per subject, cited lines | 00:30 | after 05:00, core proven |
+| 10 | Flashcards per subject, flip UI | 00:45 | after step 9 |
+| 11 | Export timeline as .ics | 00:20 | after step 10 |
+| 12 | Reminders via macOS notification | 00:30 | only before 07:00 |
+| 13 | Study streak (quiz days) | 00:20 | only before 07:00 |
+| 14 | Clean notes from a whiteboard photo | 00:45 | only before 07:00 |
+
+Hard stop 07:00. Then video, post, form.
+
 Run order per worker: `npm run dev` on the main tree, workers on worktrees use `-p 3101`, `-p 3102`.
 
 ## Demo script, 60 seconds

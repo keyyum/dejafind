@@ -21,9 +21,23 @@ Class materials only: photos of slides and whiteboards, handouts, GC screenshots
 3. **Summary on every capture.** Title, one-line summary, tags. IMG_4821 becomes "Bio lecture 5, cell division, quiz Oct 17".
 4. **Quiz me.** "Quiz me on Biology": five questions generated from your own captures, graded, with the source shown. This is core. It is the first thing cut if time runs out, but a study brain that does not quiz you is a folder.
 
-## Not in scope for the hackathon
+## Tier 2, only after the core four and the network panel are proven (target 05:00 to 06:30)
 
-Reviewer sheets, flashcards, calendar sync, reminders, phone app, sync or backup, share sheet, camera-roll import, auto-written lecture notes, social features, streaks, grade prediction, non-academic files.
+- **Reviewer sheet.** One prompt over a subject's captures; every line cites its source capture.
+- **Flashcards.** Term and definition pairs from captures, flip UI. No spaced repetition.
+- **Add to calendar.** Export the timeline as an .ics file that opens in Apple or Google Calendar. No two-way sync.
+
+## Tier 3, only if tier 2 is done before 07:00
+
+- **Reminders.** A macOS notification before a deadline. Low demo value.
+- **Study streak.** Counts days you quizzed, never days you captured.
+- **Clean notes from a whiteboard photo.** Messy board to editable typed text. The model can misread; show the source photo beside it.
+
+At 07:00 everything stops. Remaining hours go to the video, the post, and the form.
+
+## Never
+
+Social features (sharing, feeds, group rooms, note marketplace: all need accounts and a server), two-way calendar sync, phone app, backup or sync, share sheet, camera-roll import, grade prediction.
 
 ## Why local AI
 
@@ -41,7 +55,7 @@ A chatbot waits for you to type. DéjàFind works even if you never type anythin
 
 ## Non-acad files
 
-Out of scope. If a judge asks "could it do receipts", the answer is "the engine could, we built it for class materials and we're staying there".
+Indexed anyway, because the pipeline runs on every file: a receipt gets a title, summary, and the tag Other, and is searchable. It gets no subject, no timeline entry, no quiz, and no mention in the pitch. If a judge asks: "it handles them, we built for class".
 
 ## Platform
 
