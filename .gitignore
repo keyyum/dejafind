@@ -55,3 +55,6 @@ next-env.d.ts
 
 # story: raw screen recordings and recorder scratch
 video/takes/
+
+# any nested tooling installs (video/hf)
+**/node_modules/
