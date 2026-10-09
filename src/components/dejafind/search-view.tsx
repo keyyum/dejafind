@@ -10,6 +10,7 @@ import { kindWord, relativeDay, seconds } from "@/lib/client/format";
 import { Highlight } from "./highlight";
 import { Paper } from "./paper";
 import { SearchBar } from "./search-bar";
+import { SnapButton } from "./snap";
 import { SiteHeader } from "./site-header";
 import { SubjectFilters } from "./subject-filters";
 
@@ -79,8 +80,11 @@ export function SearchView() {
     <>
       <SiteHeader />
       <main className="mx-auto flex w-full max-w-[1320px] flex-col gap-8 px-6 pt-12 pb-32 sm:px-12">
-        <div className="max-w-[880px]">
-          <SearchBar defaultValue={q} subjectId={subject} autoFocus={!q} />
+        <div className="flex max-w-[1000px] items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <SearchBar defaultValue={q} subjectId={subject} autoFocus={!q} />
+          </div>
+          <SnapButton />
         </div>
         <div className="flex flex-wrap items-baseline gap-x-8 gap-y-3">
           <div className="min-w-0 flex-1">

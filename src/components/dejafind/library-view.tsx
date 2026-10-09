@@ -19,6 +19,7 @@ import { useDejaEvent } from "./events";
 import { isBulkImport, isBulkRunning } from "./import-drop";
 import { ScheduleCard } from "./schedule-card";
 import { SearchBar } from "./search-bar";
+import { SnapButton } from "./snap";
 import { SiteHeader } from "./site-header";
 import { SubjectFilters } from "./subject-filters";
 
@@ -212,8 +213,11 @@ export function LibraryView() {
     <>
       <SiteHeader />
       <main className="mx-auto flex w-full max-w-[1320px] flex-col gap-8 px-6 pt-12 pb-32 sm:px-12">
-        <div className="max-w-[880px]">
-          <SearchBar subjectId={filter !== "all" && filter !== "schedule" ? filter : null} />
+        <div className="flex max-w-[1000px] items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <SearchBar subjectId={filter !== "all" && filter !== "schedule" ? filter : null} />
+          </div>
+          <SnapButton />
         </div>
         <SubjectFilters
           subjects={subjects}
