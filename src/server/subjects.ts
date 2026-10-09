@@ -162,7 +162,7 @@ async function parseScheduleEntries(text: string): Promise<RawScheduleJson> {
       format: "json",
       keep_alive: -1,
       think: false,
-      options: { temperature: 0 },
+      options: { temperature: 0, num_ctx: 8192 },
       messages: [{ role: "user", content: prompt }],
     });
     const parsed = parseModelJson(response.message.content);

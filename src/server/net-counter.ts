@@ -9,15 +9,28 @@ const http = nodeRequire("node:http") as typeof HttpModule;
 const https = nodeRequire("node:https") as typeof HttpsModule;
 
 const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
+const MAX_LAST_OUTBOUND = 20;
+/**
+ * Next's own dev-mode HMR sync unconditionally fetches this on the first browser
+ * connection (version-check for the "update available" indicator), independent of
+ * `devIndicators` or telemetry settings. It's not app code, not user data, and the
+ * demo needs requestsOut at 0 with Wi-Fi off, so we block it outright rather than
+ * just hide it from the counter.
+ */
+const BLOCKED_HOSTS = new Set(["registry.npmjs.org"]);
 
 declare global {
   var __dejafindRequestsOut: number | undefined;
   var __dejafindNetCounterInstalled: boolean | undefined;
+  var __dejafindLastOutbound: string[] | undefined;
 }
 
 function bumpIfRemote(hostname: string | null | undefined) {
   if (hostname && !LOCAL_HOSTS.has(hostname)) {
     globalThis.__dejafindRequestsOut = (globalThis.__dejafindRequestsOut ?? 0) + 1;
+    const log = (globalThis.__dejafindLastOutbound ??= []);
+    log.push(hostname);
+    if (log.length > MAX_LAST_OUTBOUND) log.shift();
   }
 }
 
@@ -44,6 +57,7 @@ export function installNetCounter() {
 
   const originalFetch = globalThis.fetch;
   globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    let hostname: string | null = null;
     try {
       const url =
         typeof input === "string"
@@ -51,17 +65,25 @@ export function installNetCounter() {
           : input instanceof URL
             ? input.href
             : (input as Request).url;
-      bumpIfRemote(new URL(url).hostname);
+      hostname = new URL(url).hostname;
     } catch {
       // unparsable, ignore
     }
+    if (hostname && BLOCKED_HOSTS.has(hostname)) {
+      throw new Error(`dejafind: blocked outbound request to ${hostname}`);
+    }
+    bumpIfRemote(hostname);
     return originalFetch(input as RequestInfo, init);
   }) as typeof fetch;
 
   for (const mod of [http, https] as const) {
     const originalRequest = mod.request.bind(mod);
     mod.request = ((...args: unknown[]) => {
-      bumpIfRemote(hostFromRequestArgs(args));
+      const hostname = hostFromRequestArgs(args);
+      if (hostname && BLOCKED_HOSTS.has(hostname)) {
+        throw new Error(`dejafind: blocked outbound request to ${hostname}`);
+      }
+      bumpIfRemote(hostname);
       // @ts-expect-error forwarding the original overloaded signature
       return originalRequest(...args);
     }) as typeof mod.request;
@@ -70,4 +92,9 @@ export function installNetCounter() {
 
 export function requestsOut(): number {
   return globalThis.__dejafindRequestsOut ?? 0;
+}
+
+/** Hostnames of the last few counted outbound requests, newest last, for debugging a nonzero counter. */
+export function lastOutbound(): string[] {
+  return globalThis.__dejafindLastOutbound ?? [];
 }

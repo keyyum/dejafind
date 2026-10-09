@@ -52,17 +52,29 @@ export async function ingestFile(path: string): Promise<IngestResult> {
   const createdAt = new Date().toISOString();
   const kind = kindFor(ext);
 
-  db.prepare(
-    `INSERT INTO documents (
-       id, path, kind, doc_type, sha256, captured_at, title, summary, tags, subject_id,
-       text, status, thumb_path, clean_path, width, height, pages, read_ms, filed_at,
-       error, schedule_section, created_at
-     ) VALUES (
-       @id, @path, @kind, NULL, @sha256, @capturedAt, '', '', '[]', NULL,
-       '', 'queued', NULL, NULL, NULL, NULL, 1, NULL, NULL,
-       NULL, NULL, @createdAt
-     )`
-  ).run({ id, path, kind, sha256, capturedAt, createdAt });
+  try {
+    db.prepare(
+      `INSERT INTO documents (
+         id, path, kind, doc_type, sha256, captured_at, title, summary, tags, subject_id,
+         text, status, thumb_path, clean_path, width, height, pages, read_ms, filed_at,
+         error, schedule_section, created_at
+       ) VALUES (
+         @id, @path, @kind, NULL, @sha256, @capturedAt, '', '', '[]', NULL,
+         '', 'queued', NULL, NULL, NULL, NULL, 1, NULL, NULL,
+         NULL, NULL, @createdAt
+       )`
+    ).run({ id, path, kind, sha256, capturedAt, createdAt });
+  } catch (err) {
+    // Two near-simultaneous drops of identical content (e.g. the direct ingest from
+    // /api/import racing chokidar's own "add" for the same file) can both pass the
+    // SELECT check before either INSERT commits. The sha256 UNIQUE constraint is the
+    // real guard; treat its violation as the duplicate it is instead of crashing.
+    const message = err instanceof Error ? err.message : String(err);
+    if (message.includes("UNIQUE constraint failed") && message.includes("sha256")) {
+      return { summary: null, duplicate: true };
+    }
+    throw err;
+  }
 
   const summary = getDocumentSummaryById(id);
   if (summary) emitEvent({ type: "document.queued", document: summary }, id);
@@ -74,6 +86,17 @@ export async function ingestFile(path: string): Promise<IngestResult> {
  * Watches `data/watch/` (initial scan on) plus `~/Desktop` and `~/Downloads`
  * (existing files ignored, only new drops matter). Step 1.
  */
+/**
+ * `ingestFile` is fired without being awaited from chokidar's event handler, so an
+ * uncaught rejection (a bad read, a DB hiccup) would otherwise become an unhandled
+ * promise rejection and can kill the whole dev server. Always catch here.
+ */
+function safeIngest(path: string): void {
+  ingestFile(path).catch((err) => {
+    console.error(`[watcher] ingest failed for ${path}`, err);
+  });
+}
+
 export function startWatcher(): void {
   if (globalThis.__dejafindWatchers) return;
 
@@ -82,14 +105,16 @@ export function startWatcher(): void {
     awaitWriteFinish: { stabilityThreshold: 500, pollInterval: 100 },
     depth: 0,
   });
-  dropWatcher.on("add", (path) => void ingestFile(path));
+  dropWatcher.on("add", safeIngest);
+  dropWatcher.on("error", (err) => console.error("[watcher] drop watcher error", err));
 
   const folderWatcher = chokidar.watch([join(homedir(), "Desktop"), join(homedir(), "Downloads")], {
     ignoreInitial: true,
     awaitWriteFinish: { stabilityThreshold: 500, pollInterval: 100 },
     depth: 0,
   });
-  folderWatcher.on("add", (path) => void ingestFile(path));
+  folderWatcher.on("add", safeIngest);
+  folderWatcher.on("error", (err) => console.error("[watcher] folder watcher error", err));
 
   globalThis.__dejafindWatchers = [dropWatcher, folderWatcher];
 }
