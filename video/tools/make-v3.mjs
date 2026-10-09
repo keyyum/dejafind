@@ -1,0 +1,479 @@
+// v3: every product beat rebuilt as live HTML components that re-create the app's interface,
+// with the real outputs and timings from the take-2 run as content. Builds video/hf/v3/index.html
+// on the "Newer Wave" beat grid, plus video/audio/v3-cues.json for mix.mjs.
+//   node video/tools/make-v3.mjs
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+
+const ROOT = new URL("../../", import.meta.url).pathname;
+const HF = ROOT + "video/hf/";
+const A = ROOT + "video/audio/";
+const dur = JSON.parse(readFileSync(A + "vo-v2-durations.json", "utf8"));
+const say = Object.fromEntries([...JSON.parse(readFileSync(A + "v2-say.json", "utf8")), ...JSON.parse(readFileSync(A + "v3-say.json", "utf8"))].map((x) => [x.id, x.text]));
+const markSvg = readFileSync(HF + "index.html", "utf8").match(/<svg class="mk" data-mark[\s\S]*?<\/svg>/)[0];
+
+// real outputs and timings from the take-2 run (fresh DB, main@96d83e4, quiet Ollama)
+const REAL = { answerS: 6.6, gcReadS: 8.8, snapReadS: 19.6, secPerDoc: 10.6, docs: 10 };
+
+const BEAT = 60 / 110, b = (n) => +(0.534 + n * BEAT).toFixed(3);
+const S = { turn: b(8), search: b(12), p1: b(26), p2: b(34), p3: b(42), p4: b(50), p5: b(58), close: b(66) };
+const END = +(S.close + 3.0).toFixed(3), TOTAL = +(END + 3.2).toFixed(2);
+
+const VO = { "v2-0": 0.55, "v2-1": 2.25, "v2-2": S.turn + 0.3, "v2-3": S.search + 0.5, "v2-4": S.search + 4.4,
+  "v3-a": S.p1 + 0.15, "v2-5": S.p2 + 0.15, "v2-7": S.p3 + 1.75, "v2-9": S.p4 + 0.15, "v2-11": S.p5 + 0.2, "v2-12": S.p5 + 2.75, "v2-13": S.close + 0.35 };
+const ON_SCREEN = new Set(["v2-13"]);
+const subs = Object.entries(VO).filter(([id]) => !ON_SCREEN.has(id)).map(([id, t]) => ({ id, t, end: +(t + dur[id] + 0.15).toFixed(3), text: say[id] }));
+for (let i = 0; i + 1 < subs.length; i++) if (subs[i].end > subs[i + 1].t - 0.05) subs[i].end = subs[i + 1].t - 0.05;
+
+const KIN = [
+  { id: "ks", at: S.search + 4.9, words: ["Asked.", "Answered."], key: [1] },
+  { id: "k1", at: S.p1 + 0.2, words: ["Filed.", "Dated."], key: [1] },
+  { id: "k2", at: S.p2 + 0.2, words: ["Subjects,", "automatic."], key: [1] },
+  { id: "k3", at: S.p3 + 2.6, words: ["Snap.", "Filed."], key: [1] },
+  { id: "k4", at: S.p4 + 0.2, words: ["Quiz", "yourself."], key: [1] },
+  { id: "k5", at: S.p5 + 2.2, words: ["Zero", "requests", "out."], key: [0] },
+];
+const kin = KIN.map((k) => `<div id="${k.id}" class="kin">${k.words.map((w, j) => `<span class="${k.key.includes(j) ? "accent" : ""}">${w}</span>`).join(" ")}</div>`).join("\n      ");
+
+const PH = ["bio-mitosis-slide", "whiteboard-photosynthesis", "calc-limits-slide", "sanaysay-wika-kultura", "physics-kinematics-slide",
+  "calc-longquiz-handout", "gc-biology-quiz-oct17", "timetable-bscs-2b", "gc-calculus-longquiz-oct19", "jollibee-receipt"];
+const tile = (id, img, title, subj, filed = false, extra = "") =>
+  `<div id="${id}" class="tile" ${extra}><div class="timg"><img src="../assets/${img}" alt="" /><div class="sweep"></div></div><div class="ttl">${title}</div><div class="tsub ${filed ? "filed" : ""}">${filed ? "filed under " : ""}${subj}</div></div>`;
+
+const html = `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>DéjàFind — v3</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "Figtree"; font-style: normal; font-weight: 300 900; font-display: block; src: url("../assets/fonts/figtree-latin.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+      @font-face { font-family: "Figtree"; font-style: normal; font-weight: 300 900; font-display: block; src: url("../assets/fonts/figtree-latin-ext.woff2") format("woff2"); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+      :root { --page: #fcfcfa; --ink: #1f1f1d; --secondary: #7a7a74; --hairline: #ededea; --accent: #c2410c; --success: #3c9a5f; --hl: #ffe8a3; }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: var(--page); }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; font-family: "Figtree", sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; }
+      .bg { position: absolute; inset: 0; background: radial-gradient(120% 90% at 50% 40%, #fefefc 0%, #fbfaf6 55%, #f2efe7 100%); }
+      .accent { color: var(--accent); }
+      .abs { position: absolute; }
+      /* the app window */
+      .app { position: absolute; left: 160px; top: 54px; width: 1600px; height: 900px; border-radius: 24px; background: var(--page); overflow: hidden; opacity: 0;
+        box-shadow: 0 1px 2px rgba(31,31,29,.05), 0 14px 30px rgba(31,31,29,.06), 0 50px 110px rgba(31,31,29,.14); }
+      .hdr { position: absolute; left: 60px; right: 60px; top: 30px; height: 40px; display: flex; align-items: center; gap: 36px; font-size: 21px; }
+      .hdr .logo { display: flex; align-items: center; gap: 12px; font-weight: 600; font-size: 27px; letter-spacing: -0.02em; }
+      .hdr .logo svg { width: 30px; height: 30px; color: var(--ink); }
+      .hdr .lnk { color: #4b4b47; }
+      .hdr .pill { margin-left: auto; display: flex; align-items: center; gap: 10px; color: #4b4b47; font-size: 19px; padding: 6px 14px; border-radius: 999px; }
+      .dot { width: 10px; height: 10px; border-radius: 50%; background: #2fb36d; }
+      .scene { position: absolute; left: 0; top: 0; width: 1600px; height: 900px; opacity: 0; }
+      .search { position: absolute; left: 60px; top: 104px; width: 1040px; height: 66px; border-radius: 999px; background: #fff; border: 1.5px solid var(--hairline);
+        display: flex; align-items: center; gap: 16px; padding: 0 26px; font-size: 22px; box-shadow: 0 2px 6px rgba(31,31,29,.04); }
+      .search .ph { color: #8a8a84; }
+      .search .q { color: var(--ink); white-space: pre; }
+      .search .q .ch { display: none; }
+      .caret { display: inline-block; width: 2px; height: 28px; background: var(--ink); vertical-align: middle; margin-left: 1px; }
+      .kbd { margin-left: auto; font-size: 15px; color: #8a8a84; border: 1px solid var(--hairline); border-radius: 8px; padding: 3px 8px; }
+      .reading { position: absolute; left: 66px; top: 210px; font-size: 21px; color: #6b6b65; display: flex; gap: 12px; align-items: center; opacity: 0; }
+      .spin { width: 20px; height: 20px; border-radius: 50%; border: 2.5px solid #d9d9d4; border-top-color: #6b6b65; }
+      .answer { position: absolute; left: 60px; top: 210px; width: 1480px; height: 260px; background: #fff; border-radius: 22px; border: 1px solid var(--hairline); opacity: 0;
+        box-shadow: 0 2px 6px rgba(31,31,29,.04), 0 20px 50px rgba(31,31,29,.08); }
+      .answer .txt { position: absolute; left: 40px; top: 40px; width: 960px; font-size: 34px; line-height: 1.32; }
+      .answer .txt .w { opacity: 0; }
+      .answer .meta { position: absolute; left: 40px; top: 200px; font-size: 18px; color: #7a7a74; opacity: 0; }
+      .cite { position: absolute; left: 1100px; top: 34px; width: 330px; opacity: 0; }
+      .cite img { width: 330px; height: 150px; object-fit: cover; object-position: left top; border-radius: 12px; border: 1px solid var(--hairline); box-shadow: 0 8px 20px rgba(31,31,29,.1); }
+      .cite .ct { font-size: 19px; margin-top: 10px; } .cite .cs { font-size: 16px; color: #b45309; background: var(--hl); display: inline; }
+      .strip { position: absolute; left: 60px; top: 104px; width: 1480px; height: 64px; border-top: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline); display: flex; align-items: center; gap: 40px; font-size: 22px; }
+      .strip .lab { color: #7a7a74; }
+      .chip b { font-weight: 600; } .chip.near b { color: var(--accent); } .chip span { color: #4b4b47; }
+      .grid { position: absolute; left: 60px; top: 210px; width: 1480px; height: 640px; }
+      .tile { position: absolute; top: 0; width: 340px; }
+      .timg { position: relative; width: 340px; height: 230px; border-radius: 14px; overflow: hidden; background: #fff; box-shadow: 0 2px 4px rgba(31,31,29,.06), 0 14px 30px rgba(31,31,29,.10); }
+      .timg img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+      .ttl { font-size: 22px; margin-top: 14px; white-space: nowrap; } .tsub { font-size: 19px; color: #7a7a74; margin-top: 4px; } .tsub.filed { color: var(--success); }
+      .ttl .ch { opacity: 0; }
+      .sweep { position: absolute; top: -20%; bottom: -20%; width: 40%; left: -50%; background: linear-gradient(100deg, rgba(255,255,255,0), rgba(255,255,255,.7), rgba(255,255,255,0)); }
+      .readov { position: absolute; inset: 0; background: rgba(240,238,232,.82); display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 20px; color: #5f5f59; }
+      .filters { position: absolute; left: 60px; top: 104px; display: flex; gap: 30px; font-size: 22px; color: #4b4b47; align-items: center; }
+      .filters .on { color: var(--ink); font-weight: 600; border-bottom: 2.5px solid var(--ink); padding-bottom: 4px; }
+      .filters .new { opacity: 0; }
+      .schedcard { position: absolute; left: 60px; top: 190px; width: 1480px; height: 170px; background: #fff; border-radius: 20px; border: 1px solid var(--hairline); opacity: 0;
+        box-shadow: 0 2px 6px rgba(31,31,29,.04), 0 18px 44px rgba(31,31,29,.08); }
+      .schedcard img { position: absolute; left: 30px; top: 30px; width: 200px; height: 110px; object-fit: cover; object-position: left top; border-radius: 10px; box-shadow: 0 6px 16px rgba(31,31,29,.12); }
+      .schedcard .h { position: absolute; left: 270px; top: 40px; font-size: 30px; } .schedcard .p { position: absolute; left: 270px; top: 92px; font-size: 20px; color: #7a7a74; width: 820px; }
+      .btn { position: absolute; top: 56px; height: 58px; border-radius: 999px; font-size: 21px; display: flex; align-items: center; justify-content: center; }
+      .btn.dark { left: 1140px; width: 140px; background: var(--ink); color: #fcfcfa; } .btn.ghost { left: 1300px; width: 150px; border: 1.5px solid var(--hairline); }
+      .sheet { position: absolute; left: 200px; top: 90px; width: 1200px; height: 780px; border-radius: 30px; background: #121211; opacity: 0; box-shadow: 0 40px 100px rgba(0,0,0,.35); }
+      .sheet .st { position: absolute; left: 36px; top: 26px; color: #fcfcfa; font-size: 24px; font-weight: 600; } .sheet .ss { position: absolute; left: 36px; top: 60px; color: #b9b9b2; font-size: 18px; }
+      .vf { position: absolute; left: 36px; top: 104px; width: 1128px; height: 540px; border-radius: 22px; overflow: hidden; }
+      .vf img { position: absolute; left: -30px; top: -10px; width: 1190px; height: 580px; object-fit: cover; object-position: center 20%; }
+      .focus { position: absolute; left: 480px; top: 170px; width: 150px; height: 150px; border: 2px solid #fff; border-radius: 10px; opacity: 0; }
+      .shutter { position: absolute; left: 564px; top: 668px; width: 72px; height: 72px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 5px #121211, 0 0 0 8px rgba(255,255,255,.85); }
+      .flash { position: absolute; inset: 0; background: #fff; opacity: 0; }
+      .quiz { position: absolute; left: 330px; top: 96px; width: 940px; }
+      .qtop { font-size: 19px; color: #7a7a74; display: flex; justify-content: space-between; } .qbar { height: 3px; background: var(--hairline); margin-top: 14px; } .qbar i { display: block; width: 20%; height: 3px; background: var(--ink); }
+      .qq { font-size: 34px; line-height: 1.3; margin-top: 34px; } .qq .ch { opacity: 0; }
+      .opt { position: relative; height: 64px; border: 1.5px solid var(--hairline); border-radius: 14px; margin-top: 14px; display: flex; align-items: center; gap: 24px; padding: 0 24px; font-size: 22px; background: #fff; opacity: 0; }
+      .opt .l { color: #9a9a94; font-size: 18px; width: 14px; }
+      .hov { position: absolute; inset: 0; border-radius: 13px; background: #f1f0ec; opacity: 0; }
+      .okring { position: absolute; inset: -1.5px; border-radius: 14px; border: 3px solid var(--success); background: rgba(60,154,95,.08); opacity: 0; }
+      .verdict { margin-top: 26px; display: flex; gap: 30px; opacity: 0; } .verdict .c { color: var(--success); font-weight: 600; font-size: 24px; } .verdict p { font-size: 20px; color: #4b4b47; margin-top: 8px; width: 560px; line-height: 1.4; }
+      .verdict img { width: 220px; height: 124px; object-fit: cover; border-radius: 10px; box-shadow: 0 8px 20px rgba(31,31,29,.12); }
+      .panel { position: absolute; left: 1010px; top: 82px; width: 520px; background: #fff; border-radius: 22px; border: 1px solid var(--hairline); padding: 28px 30px; opacity: 0;
+        box-shadow: 0 20px 60px rgba(31,31,29,.14); transform-origin: 90% 0; }
+      .panel .zero { display: flex; align-items: center; gap: 18px; font-size: 21px; color: #4b4b47; padding-bottom: 20px; border-bottom: 1px solid var(--hairline); }
+      .panel .zero b { font-family: ui-monospace, Menlo, monospace; font-size: 44px; color: var(--ink); }
+      .mrow { display: flex; justify-content: space-between; margin-top: 18px; font-size: 20px; opacity: 0; } .mrow span { color: #7a7a74; font-size: 16px; display: block; margin-top: 3px; } .mrow em { font-style: normal; font-family: ui-monospace, Menlo, monospace; font-size: 17px; color: #4b4b47; }
+      .spd { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--hairline); font-size: 20px; display: flex; justify-content: space-between; opacity: 0; } .spd em { font-style: normal; font-family: ui-monospace, Menlo, monospace; }
+      .note2 { font-size: 16px; color: #7a7a74; margin-top: 10px; opacity: 0; }
+      .honest { position: absolute; left: 170px; top: 20px; font-size: 19px; color: #6b6b65; opacity: 0; white-space: nowrap; }
+      .speed { position: absolute; font-size: 18px; color: #5f5f59; background: rgba(255,255,255,.95); border-radius: 999px; padding: 6px 14px; border: 1px solid var(--hairline); opacity: 0; white-space: nowrap; }
+      .kin { position: absolute; left: 230px; bottom: 156px; font-size: 84px; font-weight: 600; letter-spacing: -0.02em; white-space: nowrap; padding: 6px 26px 14px; border-radius: 22px;
+        background: rgba(252,252,250,.95); box-shadow: 0 12px 40px rgba(31,31,29,.12); opacity: 0; }
+      .kin span { display: inline-block; opacity: 0; }
+      .sub2 { position: absolute; left: 0; right: 0; bottom: 40px; display: flex; justify-content: center; pointer-events: none; }
+      .sub2 span { display: block; background: rgba(31,31,29,.86); color: #fcfcfa; font-size: 34px; font-weight: 500; line-height: 1; padding: 13px 24px 15px; border-radius: 14px; white-space: nowrap; }
+      .cursor { position: absolute; left: 0; top: 0; width: 26px; height: 26px; margin: -13px 0 0 -13px; border-radius: 50%; background: var(--ink); opacity: 0; box-shadow: 0 0 0 5px rgba(31,31,29,.12); z-index: 20; }
+      .trail { position: absolute; left: 0; top: 0; width: 16px; height: 16px; margin: -8px 0 0 -8px; border-radius: 50%; background: var(--ink); opacity: 0; z-index: 19; }
+      /* hook + close (from v2) */
+      .phone { position: absolute; left: 780px; top: 120px; width: 360px; height: 740px; border-radius: 54px; background: #141413; padding: 14px; opacity: 0; box-shadow: 0 30px 80px rgba(31,31,29,.3); }
+      .screen { position: relative; width: 100%; height: 100%; border-radius: 42px; overflow: hidden; background: #f4f4f1; }
+      .bar { height: 92px; background: #fff; border-bottom: 1px solid #e6e6e2; padding: 46px 20px 0; font-size: 18px; font-weight: 600; }
+      .bubble { margin: 14px 16px 0; background: #e9e9e6; border-radius: 18px; padding: 12px 14px; font-size: 15px; line-height: 1.35; width: 250px; }
+      .bubble.me { margin-left: auto; background: #3c9a5f; color: #fff; width: 170px; }
+      .notif { position: absolute; left: 12px; right: 12px; top: 14px; background: rgba(255,255,255,.96); border-radius: 22px; padding: 14px 16px; box-shadow: 0 10px 30px rgba(0,0,0,.18); font-size: 15px; line-height: 1.3; opacity: 0; }
+      .notif b { display: block; font-size: 14px; color: var(--secondary); font-weight: 600; margin-bottom: 4px; }
+      .pflash { position: absolute; inset: 0; background: #fff; opacity: 0; }
+      .thumb { position: absolute; left: 16px; bottom: 26px; width: 92px; height: 190px; border-radius: 12px; border: 3px solid #fff; overflow: hidden; opacity: 0; box-shadow: 0 8px 20px rgba(0,0,0,.3); }
+      .pile div { position: absolute; width: 250px; height: 180px; border-radius: 10px; background-size: cover; background-position: center; opacity: 0; border: 4px solid #fff; box-shadow: 0 10px 26px rgba(31,31,29,.2); }
+      .tag { position: absolute; left: 0; right: 0; text-align: center; } .tag .big { font-size: 128px; font-weight: 600; letter-spacing: -0.02em; line-height: 1; } .tag .sub { margin-top: 26px; font-size: 48px; font-weight: 500; color: var(--secondary); }
+      .tagband { position: absolute; left: 0; right: 0; top: 340px; height: 380px; opacity: 0; background: linear-gradient(180deg, rgba(252,252,250,0) 0%, rgba(252,252,250,.97) 20%, rgba(252,252,250,.97) 80%, rgba(252,252,250,0) 100%); }
+      .wipe { position: absolute; inset: 0; background: var(--page); transform-origin: 0 50%; opacity: 0; }
+      .turn { position: absolute; left: 0; right: 0; top: 400px; text-align: center; font-size: 104px; font-weight: 600; letter-spacing: -0.02em; opacity: 0; }
+      .smallname { position: absolute; left: 0; right: 0; top: 560px; display: flex; justify-content: center; align-items: center; gap: 18px; font-size: 52px; font-weight: 600; opacity: 0; }
+      .smallname svg { width: 54px; height: 54px; color: var(--ink); }
+      .closehead { position: absolute; left: 960px; top: 420px; font-size: 96px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.05; opacity: 0; }
+      .ink { position: absolute; inset: 0; background: var(--ink); opacity: 0; }
+      .endlock { position: absolute; left: 0; right: 0; top: 330px; display: flex; justify-content: center; align-items: center; gap: 36px; opacity: 0; }
+      .endlock svg { width: 150px; height: 150px; color: var(--page); } .endlock span { font-size: 150px; font-weight: 600; letter-spacing: -0.02em; color: var(--page); line-height: 1; }
+      .endline { position: absolute; left: 0; right: 0; text-align: center; color: var(--page); opacity: 0; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="v3" data-start="0" data-duration="${TOTAL}" data-width="1920" data-height="1080">
+      <div class="bg"></div>
+
+      <div id="pile" class="pile">${Array.from({ length: 26 }, (_, i) => `<div style="background-image:url('../assets/photos/${PH[(i * 3) % PH.length]}.jpg')"></div>`).join("")}</div>
+      <div id="phone" class="phone"><div class="screen">
+        <div class="bar">BSCS 2-A</div><div class="bubble">Who has the slides from Tuesday?</div><div class="bubble me">sent na po</div><div class="bubble">ty!!</div>
+        <div id="notif" class="notif"><b>Ma'am Reyes · BSCS 2-A</b>our Biology quiz is MOVED to October 17</div>
+        <div id="pflash" class="pflash"></div>
+        <div id="thumb" class="thumb"><img src="../assets/gc.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:left top" /></div>
+      </div></div>
+      <div id="tagband" class="tagband"></div>
+      <div id="tag" class="tag" style="top:420px"><div class="big" id="tagbig">Kailan nga ulit yung quiz?</div><div class="sub" id="tagsub">When was the quiz again?</div></div>
+      <div id="wipe" class="wipe"></div>
+      <div id="turn" class="turn">What if your laptop just… <span class="accent">knew.</span></div>
+      <div id="smallname" class="smallname">${markSvg}<span>DéjàFind</span></div>
+
+      <div id="honest" class="honest">Interface re-created from the real app · outputs and timings from a real run on this laptop</div>
+
+      <div id="app" class="app">
+        <div class="hdr"><div class="logo">${markSvg}<span>DéjàFind</span></div><span class="lnk">Schedule</span><span class="lnk">Ask</span>
+          <div id="spill" class="pill"><i class="dot"></i>On this laptop · nothing sent</div></div>
+
+        <!-- ASK -->
+        <div id="sc-search" class="scene">
+          <div class="search"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6b6b65" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+            <span id="ph" class="ph">Search inside your documents, or ask</span><span id="q" class="q">when's my bio quiz</span><i id="caret" class="caret" style="opacity:0"></i><span class="kbd">⌘K</span></div>
+          <div id="reading" class="reading"><i id="spin" class="spin"></i>Reading your documents on this laptop… <b id="rsec">0.0 s</b></div>
+          <div id="answer" class="answer">
+            <div id="atxt" class="txt">Your Biology quiz is on <b>October 17 (Saturday)</b> in Room 301 at 1:00 PM.</div>
+            <div id="ameta" class="meta">From one of your documents · ${REAL.answerS} s on this laptop</div>
+            <div id="cite" class="cite"><img src="../assets/gc.png" alt="" /><div class="ct">Biology Quiz Reminder</div><div class="cs">Reminder: our Biology quiz is MOVED to October 17 (Saturday)</div></div>
+          </div>
+        </div>
+
+        <!-- LIBRARY: the GC lands -->
+        <div id="sc-lib" class="scene">
+          <div class="strip"><span class="lab">Coming up</span><span class="chip near"><b>Sun 11</b> <span>Due</span></span><span class="chip"><b>Tue 13</b> <span>Due Date</span></span>
+            <span id="chipSat" class="chip" style="opacity:0"><b>Sat 17</b> <span>Quiz Date</span></span><span id="chipMon" class="chip"><b>Mon 19</b> <span>Quiz Date</span></span></div>
+          <div class="grid">
+            ${tile("gt0", "photos/calc-longquiz-handout.jpg", "Calculus 1 Long Quiz 2 Coverage", "Calculus", true, 'style="left:0"')}
+            ${tile("gt1", "photos/physics-kinematics-slide.jpg", "Kinematics: Motion in One Dimension", "Physics", false, 'style="left:380px"')}
+            ${tile("gt2", "photos/calc-limits-slide.jpg", "Limits and Continuity", "Calculus", false, 'style="left:760px"')}
+            ${tile("gt3", "photos/sanaysay-wika-kultura.jpg", "Sanaysay: Wika at Kultura", "Filipino", false, 'style="left:1140px"')}
+            <div id="gcTile" class="tile" style="left:0;opacity:0"><div class="timg"><img src="../assets/gc.png" alt="" /><div id="gcRead" class="readov"><i class="spin"></i><span>Reading… <b id="gsec">0 s</b></span></div><div class="sweep"></div></div>
+              <div id="gcTtl" class="ttl">Biology Quiz Reminder</div><div id="gcSub" class="tsub filed" style="opacity:0">filed under Biology</div>
+              <div id="flyChip" class="abs chip" style="left:0;top:330px;font-size:22px;opacity:0;background:#fff;padding:6px 14px;border-radius:999px;box-shadow:0 8px 20px rgba(31,31,29,.15)"><b>Sat 17</b> <span>Quiz Date</span></div></div>
+          </div>
+          <div id="lab1" class="speed" style="left:60px;top:860px">read took ${REAL.gcReadS} s · counter sped up</div>
+        </div>
+
+        <!-- SCHEDULE -->
+        <div id="sc-sched" class="scene">
+          <div class="filters"><span class="on">All</span><span id="fB" class="new">Biology</span><span id="fC" class="new">Calculus</span><span id="fF" class="new">Filipino</span><span id="fN" class="new">NSTP</span><span id="fP" class="new">Physical Education</span><span id="fY" class="new">Physics</span><span>Other 1</span><span>Schedule</span></div>
+          <div id="schedcard" class="schedcard"><img src="../assets/timetable.png" alt="" /><div class="h">This looks like a class schedule for BSCS 2-B. Is it yours?</div>
+            <div class="p">It would add 6 subjects: Biology, Calculus, Physics, Filipino, Physical Education, NSTP.</div>
+            <div id="useit" class="btn dark">Use it</div><div class="btn ghost">Not mine</div></div>
+          <div class="grid" style="top:400px">${tile("st0", "timetable.png", "Class Schedule for BSCS 2-B", "Other", true, 'style="left:0"')}</div>
+        </div>
+
+        <!-- SNAP -->
+        <div id="sc-snap" class="scene">
+          <div class="strip"><span class="lab">Coming up</span><span class="chip near"><b>Sun 11</b> <span>Due</span></span><span class="chip"><b>Tue 13</b> <span>Due Date</span></span><span class="chip"><b>Sat 17</b> <span>Quiz Date</span></span></div>
+          <div class="grid">
+            <div id="wbTile" class="tile" style="left:0;opacity:0"><div class="timg"><img src="../assets/cam-whiteboard.jpg" alt="" /><div id="wbRead" class="readov"><i class="spin"></i><span>Reading… <b id="wsec">1 s</b></span></div><div class="sweep"></div></div>
+              <div class="ttl">Photosynthesis</div><div id="wbSub" class="tsub filed" style="opacity:0">filed under Biology</div></div>
+            ${tile("sn1", "gc.png", "Biology Quiz Reminder", "Biology", false, 'style="left:380px"')}
+            ${tile("sn2", "photos/calc-longquiz-handout.jpg", "Calculus 1 Long Quiz 2 Coverage", "Calculus", false, 'style="left:760px"')}
+            ${tile("sn3", "photos/physics-kinematics-slide.jpg", "Kinematics: Motion in One Dimension", "Physics", false, 'style="left:1140px"')}
+          </div>
+          <div id="sheet" class="sheet"><div class="st">Snap a page</div><div class="ss">Hold the slide or handout up to the camera.</div>
+            <div id="vf" class="vf"><img id="vfimg" src="../assets/cam-whiteboard.jpg" alt="" /><div id="focus" class="focus"></div><div id="flash" class="flash"></div></div>
+            <div id="shutter" class="shutter"></div></div>
+          <div id="lab3" class="speed" style="left:60px;top:860px">read took ${REAL.snapReadS} s · counter sped up</div>
+        </div>
+
+        <!-- QUIZ -->
+        <div id="sc-quiz" class="scene">
+          <div class="quiz">
+            <div class="qtop"><span>← Biology</span><span>1 of 5</span><span></span></div><div class="qbar"><i></i></div>
+            <div id="qq" class="qq">During which phase of mitosis do chromosomes align at the metaphase plate?</div>
+            ${["Anaphase", "Prophase", "Telophase", "Metaphase"].map((o, i) => `<div id="o${i}" class="opt"><i id="h${i}" class="hov"></i>${i === 3 ? '<i id="ok" class="okring"></i>' : ""}<span class="l" style="position:relative">${"ABCD"[i]}</span><span style="position:relative">${o}</span></div>`).join("")}
+            <div id="verdict" class="verdict"><div><div class="c">Correct</div><p>In mitosis, metaphase is when chromosomes line up at the metaphase plate.</p><p style="font-size:17px;color:#7a7a74">From Cell Division: Mitosis</p></div><img id="qsrc" src="../assets/photos/bio-mitosis-slide.jpg" alt="" /></div>
+          </div>
+        </div>
+
+        <!-- STATUS -->
+        <div id="sc-status" class="scene">
+          <div class="search" style="opacity:.5"><span class="ph">Search inside your documents, or ask</span></div>
+          <div class="grid" style="opacity:.5">
+            ${tile("ss0", "cam-whiteboard.jpg", "Photosynthesis", "Biology", false, 'style="left:0"')}
+            ${tile("ss1", "gc.png", "Biology Quiz Reminder", "Biology", false, 'style="left:380px"')}
+          </div>
+          <div id="panel" class="panel">
+            <div class="zero"><b id="zero">0</b>requests out since start</div>
+            <div class="mrow" id="m0"><div>nomic-embed-text<span>search meaning</span></div><em>137M · 274 MB</em></div>
+            <div class="mrow" id="m1"><div>qwen2.5vl:3b<span>reads images</span></div><em>3.8B · 3.2 GB</em></div>
+            <div class="mrow" id="m2"><div>qwen3:4b<span>reads text, answers</span></div><em>4.0B · 2.5 GB</em></div>
+            <div class="spd" id="spd"><span>Seconds per document</span><em>${REAL.secPerDoc} s</em></div>
+            <div class="note2" id="note2">Measured on this machine (Apple M4, 16 GB) over ${REAL.docs} documents.</div>
+          </div>
+        </div>
+      </div>
+
+      ${kin}
+
+      <div id="phone2" class="phone" style="left:520px"><div class="screen" style="background:#fff;padding:60px 18px">
+        <img src="../assets/gc.png" alt="" style="width:100%;border-radius:12px;border:1px solid #e6e6e2" />
+        <div style="margin-top:22px;font-size:22px;font-weight:600;line-height:1.3"><span style="display:block">October 17 (Saturday)</span><span style="display:block">Room 301 · 1:00 PM</span></div>
+        <div style="margin-top:8px;font-size:15px;color:#7a7a74">From your screenshot</div></div></div>
+      <div id="closeHead" class="closehead"><span style="display:block">Find what you</span><span class="accent" style="display:block">already saw.</span></div>
+
+      <div id="ink" class="ink"></div>
+      <div id="endlock" class="endlock">${markSvg}<span>DéjàFind</span></div>
+      <div id="endtag" class="endline" style="top:610px;font-size:64px;font-weight:600;letter-spacing:-0.02em">Find what you already saw.</div>
+      <div id="endmeta" class="endline" style="top:760px;font-size:34px;font-weight:500;color:#b9b9b2">github.com/keyyum/dejafind · #AppBuildersPH</div>
+
+      <div id="cursor" class="cursor"></div><div id="t1" class="trail"></div><div id="t2" class="trail"></div>
+${subs.map((x, i) => `      <div id="s${i}" class="sub2 clip" data-start="${x.t.toFixed(2)}" data-duration="${(x.end - x.t).toFixed(2)}"><span>${x.text}</span></div>`).join("\n")}
+    </div>
+    <script>
+      const S = ${JSON.stringify(S)}, BEAT = ${BEAT}, END = ${END};
+      const KIN = ${JSON.stringify(KIN.map((k) => ({ id: k.id, at: k.at })))};
+      const tl = gsap.timeline({ paused: true });
+      const E = "power3.out";
+      const AX = 160, AY = 54; // app origin in root coords
+      function chars(el) { const out = []; const walk = (n) => { for (const c of [...n.childNodes]) { if (c.nodeType === 3) { const f = document.createDocumentFragment();
+        for (const ch of c.textContent) { const s = document.createElement("span"); s.className = "ch"; s.textContent = ch; f.appendChild(s); out.push(s); } c.replaceWith(f); } else walk(c); } }; walk(el); return out; }
+      function words(el) { const out = []; const walk = (n) => { for (const c of [...n.childNodes]) { if (c.nodeType === 3) { const f = document.createDocumentFragment();
+        c.textContent.split(/(\\s+)/).forEach((w) => { if (!w) return; if (/^\\s+$/.test(w)) { f.appendChild(document.createTextNode(w)); return; } const s = document.createElement("span"); s.className = "w"; s.textContent = w; f.appendChild(s); out.push(s); });
+        c.replaceWith(f); } else walk(c); } }; walk(el); return out; }
+      const qChars = chars(document.getElementById("q")), aWords = words(document.getElementById("atxt")), gcChars = chars(document.getElementById("gcTtl")), qqChars = chars(document.getElementById("qq"));
+      const scene = (id, a, z) => { tl.fromTo(id, { opacity: 0 }, { opacity: 1, duration: 0.25 }, a); tl.to(id, { opacity: 0, duration: 0.2 }, z); };
+      const cur = (pts) => {
+        tl.set(["#cursor", "#t1", "#t2"], { x: pts[0][1], y: pts[0][2] }, pts[0][0]);
+        tl.to("#cursor", { opacity: 1, duration: 0.15 }, pts[0][0]); tl.to("#t1", { opacity: 0.22, duration: 0.15 }, pts[0][0]); tl.to("#t2", { opacity: 0.1, duration: 0.15 }, pts[0][0]);
+        for (let i = 1; i < pts.length; i++) { const d = pts[i][0] - pts[i - 1][0];
+          tl.to("#cursor", { x: pts[i][1], y: pts[i][2], duration: d * 0.8, ease: "power2.inOut" }, pts[i - 1][0]);
+          tl.to("#t1", { x: pts[i][1], y: pts[i][2], duration: d * 0.8, ease: "power2.inOut" }, pts[i - 1][0] + 0.05);
+          tl.to("#t2", { x: pts[i][1], y: pts[i][2], duration: d * 0.8, ease: "power2.inOut" }, pts[i - 1][0] + 0.1); }
+      };
+      const curOff = (t) => tl.to(["#cursor", "#t1", "#t2"], { opacity: 0, duration: 0.2 }, t);
+      const click = (t) => tl.fromTo("#cursor", { scale: 1 }, { scale: 0.6, duration: 0.06, yoyo: true, repeat: 1 }, t);
+      const ticker = (sel, from, to, t, d, fmt) => { const o = { v: from }; tl.to(o, { v: to, duration: d, ease: "none", onUpdate: () => { document.querySelector(sel).textContent = fmt(o.v); } }, t); };
+
+      // ---- HOOK (as v2) ----
+      tl.fromTo("#phone", { opacity: 0, y: 40, scale: 0.96 }, { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: E }, 0);
+      tl.fromTo("#notif", { opacity: 0, y: -40 }, { opacity: 1, y: 0, duration: 0.35, ease: "back.out(1.6)" }, 0.35);
+      tl.to("#pflash", { opacity: 0.9, duration: 0.04 }, 1.3); tl.to("#pflash", { opacity: 0, duration: 0.18 }, 1.36);
+      tl.fromTo("#thumb", { opacity: 0, scale: 1.6, x: 80, y: -200 }, { opacity: 1, scale: 1, x: 0, y: 0, duration: 0.35, ease: E }, 1.38);
+      let seed = 5; const r = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
+      [...document.querySelectorAll("#pile div")].forEach((p, i) => { const ang = r() * Math.PI * 2, rad = 120 + r() * 560;
+        tl.set(p, { left: 835 + Math.cos(ang) * rad * 1.5, top: 400 + Math.sin(ang) * rad * 0.7 }, 0);
+        tl.fromTo(p, { opacity: 0, scale: 1.4, rotation: (r() - 0.5) * 40, y: -60 }, { opacity: 1, scale: 1, rotation: (r() - 0.5) * 24, y: 0, duration: 0.3, ease: "back.out(1.3)" }, 1.7 + i * 0.045); });
+      tl.to("#phone", { scale: 0.94, duration: 2.2, ease: "none" }, 1.7);
+      tl.to("#tagband", { opacity: 1, duration: 0.3 }, 2.3);
+      tl.fromTo("#tagbig", { opacity: 0, y: 30, scale: 0.96 }, { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: E }, 2.35);
+      tl.fromTo("#tagsub", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.4, ease: E }, 2.75);
+      // ---- TURN ----
+      tl.fromTo("#wipe", { opacity: 1, scaleX: 0 }, { opacity: 1, scaleX: 1, duration: 0.45, ease: "power3.inOut" }, S.turn - 0.1);
+      tl.set(["#phone", "#pile", "#tag", "#tagband"], { opacity: 0 }, S.turn + 0.35);
+      tl.fromTo("#turn", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.5, ease: E }, S.turn + 0.3);
+      tl.fromTo("#smallname", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.5, ease: E }, S.turn + 1.2);
+      tl.to(["#turn", "#smallname"], { opacity: 0, y: -24, duration: 0.25 }, S.search - 0.15);
+
+      // ---- APP WINDOW ----
+      tl.fromTo("#app", { opacity: 0, y: 40, scale: 0.97 }, { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: E }, S.search);
+      tl.to("#app", { opacity: 0, y: -30, duration: 0.35, ease: "power2.in" }, S.close - 0.3);
+
+      // ---- 1 · ASK ----
+      const s0 = S.search;
+      scene("#sc-search", s0, S.p1 - 0.1);
+      cur([[s0 + 0.2, 1500, 900], [s0 + 0.8, AX + 520, AY + 137]]); click(s0 + 0.85);
+      tl.set("#ph", { display: "none" }, s0 + 0.95); tl.set("#caret", { opacity: 1 }, s0 + 0.95);
+      tl.to("#caret", { opacity: 0, duration: 0.01, repeat: 3, yoyo: true, repeatDelay: 0.25 }, s0 + 0.95);
+      qChars.forEach((c, i) => tl.set(c, { display: "inline" }, s0 + 1.15 + i * 0.07));
+      const typedEnd = s0 + 1.15 + qChars.length * 0.07;
+      tl.to("#cursor", { x: AX + 900, y: AY + 260, duration: 0.5, ease: "power2.inOut" }, s0 + 1.3);
+      tl.to(["#t1", "#t2"], { x: AX + 900, y: AY + 260, duration: 0.6, ease: "power2.inOut" }, s0 + 1.35);
+      tl.fromTo("#reading", { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.2 }, typedEnd + 0.15);
+      tl.fromTo("#spin", { rotation: 0 }, { rotation: 720, duration: 1.6, ease: "none" }, typedEnd + 0.15);
+      ticker("#rsec", 0, ${REAL.answerS}, typedEnd + 0.15, 1.4, (v) => v.toFixed(1) + " s");
+      tl.to("#reading", { opacity: 0, duration: 0.15 }, typedEnd + 1.65);
+      tl.fromTo("#answer", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.4, ease: E }, typedEnd + 1.7);
+      tl.to(aWords, { opacity: 1, duration: 0.08, stagger: 0.075, ease: "none" }, typedEnd + 1.95);
+      const ansEnd = typedEnd + 1.95 + aWords.length * 0.075;
+      tl.fromTo("#cite", { opacity: 0, scale: 0.85, y: 10 }, { opacity: 1, scale: 1, y: 0, duration: 0.35, ease: "back.out(1.8)" }, ansEnd + 0.05);
+      tl.fromTo("#ameta", { opacity: 0 }, { opacity: 1, duration: 0.3 }, ansEnd + 0.25);
+      tl.to("#cursor", { x: AX + 1400, y: AY + 340, duration: 0.7, ease: "power2.inOut" }, ansEnd + 0.4);
+      tl.to(["#t1", "#t2"], { x: AX + 1400, y: AY + 340, duration: 0.8, ease: "power2.inOut" }, ansEnd + 0.45);
+      tl.fromTo("#answer", { scale: 1 }, { scale: 1.03, duration: S.p1 - ansEnd, ease: "none", immediateRender: false }, ansEnd);
+      curOff(S.p1 - 0.25);
+
+      // ---- 2 · LIBRARY: the GC lands, the date lifts into Coming up ----
+      const l0 = S.p1;
+      scene("#sc-lib", l0, S.p2 - 0.1);
+      tl.to(["#gt0", "#gt1", "#gt2", "#gt3"], { x: 380, duration: 0.45, ease: "power3.inOut", stagger: 0.03 }, l0 + 0.15);
+      tl.fromTo("#gcTile", { opacity: 0, x: 900, y: -300, scale: 0.6, rotation: 8 }, { opacity: 1, x: 0, y: 0, scale: 1, rotation: 0, duration: 0.6, ease: E }, l0 + 0.15);
+      ticker("#gsec", 0, ${REAL.gcReadS}, l0 + 0.7, 1.0, (v) => v.toFixed(0) + " s");
+      tl.to("#gcRead", { opacity: 0, duration: 0.2 }, l0 + 1.75);
+      tl.fromTo("#gcTile .sweep", { x: 0 }, { x: "420%", duration: 0.6, ease: "power2.inOut" }, l0 + 1.8);
+      tl.set(gcChars, { opacity: 0 }, l0);
+      tl.to(gcChars, { opacity: 1, duration: 0.01, stagger: 0.035, ease: "none" }, l0 + 1.9);
+      tl.fromTo("#gcSub", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2)" }, l0 + 2.65);
+      tl.fromTo("#flyChip", { opacity: 0, x: 0, y: 0 }, { opacity: 1, y: -20, duration: 0.25 }, l0 + 2.95);
+      tl.to("#flyChip", { x: 520, y: -432, duration: 0.6, ease: "power3.inOut" }, l0 + 3.2);
+      tl.to("#chipMon", { opacity: 0, x: 40, duration: 0.3 }, l0 + 3.4);
+      tl.to("#flyChip", { opacity: 0, duration: 0.12 }, l0 + 3.78); tl.fromTo("#chipSat", { opacity: 0, scale: 1.3 }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2)" }, l0 + 3.78);
+      tl.fromTo("#lab1", { opacity: 0 }, { opacity: 1, duration: 0.2 }, l0 + 0.7); tl.to("#lab1", { opacity: 0, duration: 0.2 }, l0 + 2.2);
+
+      // ---- 3 · SCHEDULE: Use it, six subjects pop ----
+      const c0 = S.p2;
+      scene("#sc-sched", c0, S.p3 - 0.1);
+      tl.fromTo("#schedcard", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.4, ease: E }, c0 + 0.1);
+      cur([[c0 + 0.3, 1500, 950], [c0 + 1.1, AX + 1210, AY + 275]]); click(c0 + 1.2);
+      tl.to("#useit", { scale: 0.94, duration: 0.06, yoyo: true, repeat: 1 }, c0 + 1.2);
+      tl.to("#schedcard", { opacity: 0, height: 0, y: -10, duration: 0.35, ease: "power2.in" }, c0 + 1.45);
+      ["#fB", "#fC", "#fF", "#fN", "#fP", "#fY"].forEach((f, i) => tl.fromTo(f, { opacity: 0, y: 14, scale: 0.7 }, { opacity: 1, y: 0, scale: 1, duration: 0.25, ease: "back.out(2.2)" }, c0 + 1.65 + i * BEAT / 2));
+      tl.to("#cursor", { x: AX + 640, y: AY + 160, duration: 1.4, ease: "power1.inOut" }, c0 + 1.7);
+      tl.to(["#t1", "#t2"], { x: AX + 640, y: AY + 160, duration: 1.5, ease: "power1.inOut" }, c0 + 1.75);
+      curOff(S.p3 - 0.3);
+
+      // ---- 4 · SNAP ----
+      const n0 = S.p3;
+      scene("#sc-snap", n0, S.p4 - 0.1);
+      tl.fromTo("#sheet", { opacity: 0, y: 60, scale: 0.96 }, { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: E }, n0 + 0.05);
+      tl.fromTo("#vfimg", { scale: 1.05 }, { scale: 1.12, duration: 1.8, ease: "none" }, n0);
+      tl.fromTo("#vf", { x: -3, y: 2 }, { x: 3, y: -2, duration: 0.3, yoyo: true, repeat: 4, ease: "sine.inOut" }, n0 + 0.1);
+      tl.fromTo("#focus", { opacity: 0, scale: 1.4 }, { opacity: 1, scale: 1, duration: 0.25, ease: E }, n0 + 0.5);
+      tl.to("#focus", { opacity: 0, duration: 0.2 }, n0 + 1.1);
+      cur([[n0 + 0.35, 1450, 980], [n0 + 1.2, AX + 800, AY + 794]]); click(n0 + 1.3);
+      tl.to("#shutter", { scale: 0.85, duration: 0.06, yoyo: true, repeat: 1 }, n0 + 1.3);
+      tl.to("#flash", { opacity: 1, duration: 0.02 }, n0 + 1.33); tl.to("#flash", { opacity: 0, duration: 0.1 }, n0 + 1.45);
+      tl.to("#vf", { x: -240, y: 110, scale: 0.3, duration: 0.45, ease: "power3.in" }, n0 + 1.55);
+      tl.to("#sheet", { opacity: 0, duration: 0.25 }, n0 + 1.85);
+      curOff(n0 + 1.7);
+      tl.to(["#sn1", "#sn2", "#sn3"], { x: 0, duration: 0.01 }, n0);
+      tl.fromTo("#wbTile", { opacity: 0, y: -40, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: E }, n0 + 1.9);
+      ticker("#wsec", 1, 3, n0 + 2.1, 0.9, (v) => Math.floor(v) + " s");
+      tl.to("#wbRead", { opacity: 0, duration: 0.2 }, n0 + 3.1);
+      tl.fromTo("#wbTile .sweep", { x: 0 }, { x: "420%", duration: 0.6, ease: "power2.inOut" }, n0 + 3.15);
+      tl.fromTo("#wbSub", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2)" }, n0 + 3.3);
+      tl.fromTo("#lab3", { opacity: 0 }, { opacity: 1, duration: 0.2 }, n0 + 2.0); tl.to("#lab3", { opacity: 0, duration: 0.2 }, n0 + 3.5);
+
+      // ---- 5 · QUIZ ----
+      const z0 = S.p4;
+      scene("#sc-quiz", z0, S.p5 - 0.1);
+      tl.to(qqChars, { opacity: 1, duration: 0.01, stagger: 0.012, ease: "none" }, z0 + 0.1);
+      ["#o0", "#o1", "#o2", "#o3"].forEach((o, i) => tl.fromTo(o, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.25, ease: E }, z0 + 0.95 + i * 0.08));
+      cur([[z0 + 1.0, 1450, 980], [z0 + 1.5, AX + 640, AY + 314], [z0 + 2.0, AX + 640, AY + 470], [z0 + 2.45, AX + 640, AY + 548]]);
+      tl.to("#h0", { opacity: 1, duration: 0.1 }, z0 + 1.4); tl.to("#h0", { opacity: 0, duration: 0.1 }, z0 + 1.75);
+      tl.to("#h2", { opacity: 1, duration: 0.1 }, z0 + 1.9); tl.to("#h2", { opacity: 0, duration: 0.1 }, z0 + 2.25);
+      tl.to("#h3", { opacity: 1, duration: 0.1 }, z0 + 2.3);
+      click(z0 + 2.5);
+      tl.fromTo("#ok", { opacity: 0, scale: 0.96 }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2)" }, z0 + 2.55);
+      tl.fromTo("#verdict", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.35, ease: E }, z0 + 2.75);
+      tl.fromTo("#qsrc", { scale: 0.8 }, { scale: 1, duration: 0.35, ease: "back.out(2)" }, z0 + 2.9);
+      tl.fromTo(".quiz", { scale: 1, transformOrigin: "50% 70%" }, { scale: 1.06, duration: 1.6, ease: "none", immediateRender: false }, z0 + 2.7);
+      curOff(S.p5 - 0.3);
+
+      // ---- 6 · STATUS ----
+      const t0 = S.p5;
+      scene("#sc-status", t0, S.close - 0.35);
+      cur([[t0 + 0.1, 1100, 900], [t0 + 0.75, AX + 1400, AY + 50]]); click(t0 + 0.8);
+      tl.fromTo("#panel", { opacity: 0, scale: 0.9, y: -10 }, { opacity: 1, scale: 1, y: 0, duration: 0.35, ease: E }, t0 + 0.9);
+      tl.fromTo("#zero", { scale: 1.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.35, ease: "back.out(2.5)" }, t0 + 1.15);
+      ["#m0", "#m1", "#m2"].forEach((m, i) => tl.fromTo(m, { opacity: 0, x: 20 }, { opacity: 1, x: 0, duration: 0.3, ease: E }, t0 + 1.45 + i * BEAT / 2));
+      tl.fromTo("#spd", { opacity: 0 }, { opacity: 1, duration: 0.3 }, t0 + 2.5); tl.fromTo("#note2", { opacity: 0 }, { opacity: 1, duration: 0.3 }, t0 + 2.7);
+      tl.to("#cursor", { x: AX + 1230, y: AY + 200, duration: 1.2, ease: "power1.inOut" }, t0 + 1.2);
+      tl.to(["#t1", "#t2"], { x: AX + 1230, y: AY + 200, duration: 1.3, ease: "power1.inOut" }, t0 + 1.25);
+      tl.fromTo("#panel", { scale: 1 }, { scale: 1.04, duration: 1.4, ease: "none", immediateRender: false }, t0 + 2.8);
+      curOff(S.close - 0.4);
+
+      tl.fromTo("#honest", { opacity: 0 }, { opacity: 1, duration: 0.3 }, S.p1); tl.to("#honest", { opacity: 0, duration: 0.3 }, S.p2 + 1.5);
+
+      // kinetic captions
+      for (const k of KIN) {
+        const sp = document.querySelectorAll("#" + k.id + " span");
+        tl.fromTo("#" + k.id, { opacity: 0 }, { opacity: 1, duration: 0.15 }, k.at);
+        sp.forEach((w, j) => tl.fromTo(w, { opacity: 0, y: 26, scale: 1.25 }, { opacity: 1, y: 0, scale: 1, duration: 0.26, ease: "back.out(2)" }, k.at + 0.05 + j * BEAT / 2));
+        tl.to(["#" + k.id, "#" + k.id + " span"], { opacity: 0, duration: 0.2 }, k.at + 1.9);
+      }
+
+      // ---- CLOSE ----
+      tl.fromTo("#phone2", { opacity: 0, y: 50, scale: 0.96 }, { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: E }, S.close);
+      tl.fromTo("#closeHead", { opacity: 0, x: 30 }, { opacity: 1, x: 0, duration: 0.5, ease: E }, S.close + 0.3);
+      tl.to("#phone2", { scale: 1.03, duration: 2.4, ease: "none" }, S.close + 0.5);
+      tl.to("#ink", { opacity: 1, duration: 0.45 }, END - 0.25);
+      tl.fromTo("#endlock", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: E }, END + 0.1);
+      tl.fromTo("#endtag", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.5, ease: E }, END + 0.4);
+      tl.fromTo("#endmeta", { opacity: 0 }, { opacity: 1, duration: 0.4 }, END + 0.8);
+      document.querySelectorAll(".sub2").forEach((c) => { const st = parseFloat(c.dataset.start), d = parseFloat(c.dataset.duration);
+        tl.fromTo(c.firstElementChild, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.2 }, st); tl.to(c.firstElementChild, { opacity: 0, duration: 0.15 }, st + d - 0.15); });
+      window.__timelines["v3"] = tl;
+    </script>
+  </body>
+</html>
+`;
+mkdirSync(HF + "v3", { recursive: true });
+writeFileSync(HF + "v3/index.html", html);
+
+// ---- sound cues ----
+const sfx = []; const cue = (t, kind) => sfx.push({ t: +t.toFixed(3), kind });
+let wn = 0; const wh = (t) => cue(t, ["whoosh1", "whoosh2", "whoosh3"][wn++ % 3]);
+wh(0); cue(0.35, "pop"); cue(1.3, "click"); cue(1.34, "click2"); for (let i = 0; i < 8; i++) cue(1.7 + i * 0.14, "whoosh3-soft"); cue(2.35, "tick");
+wh(S.turn - 0.1); cue(S.turn + 1.2, "chime");
+const s0 = S.search; wh(s0); cue(s0 + 0.85, "click3");
+for (let k = 0; k < 18; k++) cue(s0 + 1.15 + k * 0.07, `key${(k % 4) + 1}`);
+const typedEnd = s0 + 1.15 + 18 * 0.07;
+cue(typedEnd + 0.1, "click2"); cue(typedEnd + 1.7, "whoosh3"); cue(typedEnd + 1.95 + 15 * 0.075 + 0.05, "pop");
+const l0 = S.p1; wh(l0 + 0.15); cue(l0 + 0.7, "click3"); cue(l0 + 2.65, "chime"); cue(l0 + 3.2, "whoosh3-soft"); cue(l0 + 3.78, "tick");
+const c0 = S.p2; wh(c0 + 0.1); cue(c0 + 1.2, "click"); for (let i = 0; i < 6; i++) cue(c0 + 1.65 + i * BEAT / 2, "pop");
+const n0 = S.p3; wh(n0 + 0.05); cue(n0 + 0.5, "tick"); cue(n0 + 1.3, "click"); cue(n0 + 1.34, "click2"); cue(n0 + 1.9, "click3"); cue(n0 + 3.3, "chime");
+const z0 = S.p4; wh(z0); cue(z0 + 1.4, "tick"); cue(z0 + 1.9, "tick"); cue(z0 + 2.5, "click"); cue(z0 + 2.55, "chime"); cue(z0 + 2.9, "pop");
+const t0 = S.p5; wh(t0); cue(t0 + 0.8, "click"); cue(t0 + 1.15, "tick"); for (let i = 0; i < 3; i++) cue(t0 + 1.45 + i * BEAT / 2, "whoosh3-soft");
+wh(S.close); cue(END - 1.4, "riser-tail");
+writeFileSync(A + "v3-cues.json", JSON.stringify({ tag: "v3", total: TOTAL, endStart: END, vo: Object.entries(VO).map(([id, t]) => ({ id, t })), sfx }, null, 2));
+console.log(`v3/index.html ${TOTAL} s · ${JSON.stringify(S)}`);

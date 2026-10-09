@@ -12,14 +12,17 @@ AppBuildersPH Hackathon 2026 entry. Theme: Local AI.
 
 - **53-second video:** [`video/dejafind-demo.mp4`](video/dejafind-demo.mp4), recorded from the real app on this laptop (no mockups), cut in HyperFrames, narrated, with captions burned in. The waits for the local models are cut for time, and the video marks each cut.
 - **Alternative 48-second cut, "the night before":** [`video/dejafind-demo-v2.mp4`](video/dejafind-demo-v2.mp4), the same real footage and audio chain, cut on the music's beat; model waits are cut and labelled with their real duration.
-- **82-second stage backup:** [`video/dejafind-backup.mp4`](video/dejafind-backup.mp4), the live demo script end to end, full screen, with captions.
+- **43-second cut, v3:** [`video/dejafind-demo-v3.mp4`](video/dejafind-demo-v3.mp4). The interface is re-created from the real app as animated components; every output and timing shown comes from a real run on this laptop.
+- **82-second stage backup:** [`video/dejafind-backup.mp4`](video/dejafind-backup.mp4), a raw screen recording of the real app running the live demo script end to end, full screen, with captions.
 - **Pitch deck:** open [`pitch/index.html`](pitch/index.html) in a browser. Works offline from `file://`. → or space for next, ← for back, F for fullscreen.
 
 ## Screenshots
 
 | Library | Document view |
 |---|---|
-| ![Library: documents filed by subject, with the Coming up strip](docs/screenshots/library.png) | ![Document view: the screenshot beside exactly what was read, its subject, and its date](docs/screenshots/document-view.png) |
+| ![Library: documents filed by subject, with the Coming up strip](docs/screenshots/library.png) | ![Document view: the screenshot beside what was read, its subject, and its date](docs/screenshots/document-view.png) |
+| **Schedule** | **Ask** |
+| ![Schedule: the week from the confirmed timetable](docs/screenshots/schedule.png) | ![Ask: a question answered from your documents, with the source](docs/screenshots/ask.png) |
 
 ## Why local AI
 
