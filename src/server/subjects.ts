@@ -30,16 +30,75 @@ const ALIASES: Record<string, string> = {
   stat: "Statistics",
 };
 
+/**
+ * Broader family grouping than ALIASES: terms that aren't spelling variants of the
+ * same word but should still match the same schedule subject ("Mathematics" and
+ * "Calculus" aren't synonyms, but in a PH class schedule they're the same slot).
+ * Used only to match an existing (especially schedule-sourced) subject, never to
+ * pick a display name.
+ */
+const FAMILY: Record<string, string> = {
+  math: "math",
+  mathematics: "math",
+  calc: "math",
+  calculus: "math",
+  algebra: "math",
+  trig: "math",
+  trigonometry: "math",
+  bio: "bio",
+  biology: "bio",
+  phy: "physics",
+  phys: "physics",
+  physics: "physics",
+  chem: "chem",
+  chemistry: "chem",
+  fil: "filipino",
+  filipino: "filipino",
+  pe: "pe",
+  physed: "pe",
+  physicaleducation: "pe",
+  cs: "cs",
+  comsci: "cs",
+  computerscience: "cs",
+  eng: "english",
+  engl: "english",
+  english: "english",
+  hist: "history",
+  history: "history",
+  nstp: "nstp",
+  stat: "statistics",
+  stats: "statistics",
+  statistics: "statistics",
+};
+
+/** Subject names the reader sometimes produces that mean "no subject", never create these. */
+const REJECTED_NAMES = new Set(["unknown", "none", "na", "general", "other", "n", "nota", "notapplicable"]);
+
 function titleCase(name: string): string {
   return name.replace(/\w\S*/g, (w) => w[0].toUpperCase() + w.slice(1).toLowerCase());
 }
 
+/** Strips a trailing course/section number for display: "Biology 101" / "Calculus 1" -> "Biology" / "Calculus". */
+function stripCourseNumber(name: string): string {
+  return name.replace(/\s+\d+[A-Za-z]?\s*$/, "").trim();
+}
+
+function alphaKey(name: string): string {
+  return name.toLowerCase().replace(/[^a-z]/g, "");
+}
+
 export function normalizeSubjectName(raw: string | null | undefined): string {
-  const trimmed = (raw ?? "").trim();
+  const trimmed = stripCourseNumber((raw ?? "").trim());
   if (!trimmed) return "";
-  const key = trimmed.toLowerCase().replace(/[^a-z]/g, "");
+  const key = alphaKey(trimmed);
+  if (REJECTED_NAMES.has(key)) return "";
   if (ALIASES[key]) return ALIASES[key];
   return titleCase(trimmed);
+}
+
+/** Family key for fuzzy-matching against existing subjects; null when the name isn't in a known family. */
+function familyKey(name: string): string | null {
+  return FAMILY[alphaKey(stripCourseNumber(name))] ?? null;
 }
 
 interface SubjectRow {
@@ -95,7 +154,28 @@ function matchScheduleByTime(capturedAt: string): string | null {
   return row?.subject_id ?? null;
 }
 
-/** Filing order from the contract: reader subject match, then schedule time match, then new inferred subject, else Other. */
+function hasConfirmedSchedule(): boolean {
+  const row = getDb().prepare(`SELECT 1 FROM schedule LIMIT 1`).get();
+  return !!row;
+}
+
+/** Closest schedule-sourced subject by alias/family match, e.g. "Mathematics" -> "Calculus". */
+function findScheduleSubjectByFamily(normalizedName: string): Subject | null {
+  const wantFamily = familyKey(normalizedName);
+  if (!wantFamily) return null;
+
+  const rows = getDb().prepare(`SELECT * FROM subjects WHERE source = 'schedule'`).all() as SubjectRow[];
+  for (const row of rows) {
+    if (familyKey(row.name) === wantFamily) return rowToSubject(row);
+  }
+  return null;
+}
+
+/**
+ * Filing order: reader subject match, then (when a schedule is confirmed) a fuzzy
+ * family match against schedule subjects, then schedule time match, then a new
+ * inferred subject, else Other.
+ */
 export function fileDocumentSubject(
   row: DocumentRow,
   read: ReadResult
@@ -106,6 +186,11 @@ export function fileDocumentSubject(
   if (normalized) {
     const existing = findSubjectByName(normalized);
     if (existing) return { subjectId: existing.id, newSubjects };
+
+    if (hasConfirmedSchedule()) {
+      const fuzzy = findScheduleSubjectByFamily(normalized);
+      if (fuzzy) return { subjectId: fuzzy.id, newSubjects };
+    }
   }
 
   const scheduleMatch = matchScheduleByTime(row.captured_at);
@@ -259,8 +344,9 @@ export function confirmSchedule(documentId: string, confirm: boolean): { respons
       insertSchedule.run(newId(), subjectId, entry.weekday, entry.start, entry.end, entry.room, entry.section);
     }
 
-    const firstSubjectId = pending.entries.length > 0 ? nameToId.get(pending.entries[0].subjectName) ?? null : null;
-    db.prepare(`UPDATE documents SET subject_id = ?, filed_at = ? WHERE id = ?`).run(firstSubjectId, filedAt, documentId);
+    // The timetable document itself isn't "about" any one of the subjects it lists;
+    // it belongs under Other, same as when it's declined.
+    db.prepare(`UPDATE documents SET subject_id = NULL, filed_at = ? WHERE id = ?`).run(filedAt, documentId);
   } else {
     db.prepare(`UPDATE documents SET subject_id = NULL, filed_at = ? WHERE id = ?`).run(filedAt, documentId);
   }
