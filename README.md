@@ -71,7 +71,7 @@ Keep this section current. Every model, framework, and library is listed the mom
 
 **Cloud services and APIs:** none in the product. Next.js's own anonymous build telemetry is disabled on the demo machine with `npx next telemetry disable` so the outbound-request counter reads zero.
 
-**Existing code and assets:** none. Scaffolded with `create-next-app` on Oct 10 2026 during the hackathon. Sample files in `data/samples/` are synthetic.
+**Existing code and assets:** none. Scaffolded with `create-next-app` on Oct 10 2026 during the hackathon. Sample files in `data/samples/` are synthetic: most are rendered from HTML we wrote; three photos (`bio-mitosis-slide.jpg`, `whiteboard-photosynthesis.jpg`, `calc-longquiz-handout.jpg`) were generated with OpenAI Codex's image tool during the hackathon from text we wrote, so the demo has realistic camera photos without using anyone's real documents.
 
 **AI development tools:** Claude Code (Anthropic) was used as a coding assistant. All code was written during the hackathon. The logo mark is a hand-drawn SVG based on a concept image generated with OpenAI Codex during the hackathon; no generated raster ships as a logo.
 
