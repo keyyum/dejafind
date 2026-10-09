@@ -36,7 +36,7 @@ Open http://localhost:3100. Drop a file into `data/watch/` or take a screenshot.
 Keep this section current. Every model, framework, and library is listed the moment it is added.
 
 **Models (all run locally via Ollama)**
-- `qwen2.5vl:3b` (Qwen2.5-VL 3B, Apache 2.0): reads images, returns text, title, summary, tags, dates.
+- `qwen2.5vl:3b` (Qwen2.5-VL 3B Instruct, Qwen Research License: non-commercial research and evaluation use; the 7B checkpoint is the Apache 2.0 one, this entry is a 3B): reads images, returns text, title, summary, tags, dates.
 - `qwen3:4b` (Qwen3 4B, Apache 2.0): text files, structured extraction, answers, quiz generation.
 - `nomic-embed-text` (Nomic Embed v1.5, Apache 2.0): embeddings for semantic search.
 
