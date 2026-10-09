@@ -4,7 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
-const LINKS = [{ href: "/schedule", label: "Schedule" }];
+const LINKS = [
+  { href: "/schedule", label: "Schedule" },
+  { href: "/ask", label: "Ask" },
+];
 
 /** Quiet header links beside the wordmark. */
 export function HeaderNav() {
