@@ -74,7 +74,15 @@ export function SearchView() {
   };
 
   const answer = res?.isQuestion ? res.answer : null;
-  const citations = answer?.citations.filter((c) => cited[c.documentId]).slice(0, 2) ?? [];
+  // One entry per document: core may cite several lines of the same capture separately.
+  const byDoc = new Map<string, string[]>();
+  for (const c of answer?.citations ?? []) {
+    const lines = byDoc.get(c.documentId) ?? [];
+    for (const l of c.lines) if (!lines.includes(l)) lines.push(l);
+    byDoc.set(c.documentId, lines);
+  }
+  const docCount = byDoc.size;
+  const citations = [...byDoc].filter(([id]) => cited[id]).slice(0, 2).map(([documentId, lines]) => ({ documentId, lines }));
 
   return (
     <>
@@ -117,7 +125,7 @@ export function SearchView() {
                     <AnswerText text={answer.text} keyFact={answer.keyFact} />
                   </p>
                   <p className="text-[15px] text-muted-foreground">
-                    From {answer.citations.length} of your {answer.citations.length === 1 ? "document" : "documents"}
+                    From {docCount} of your {docCount === 1 ? "document" : "documents"}
                   </p>
                 </div>
                 {citations.length > 0 && (
@@ -133,7 +141,7 @@ export function SearchView() {
                           <Paper doc={doc} maxAspect={0.9} />
                           <span className="flex flex-col gap-1">
                             <span className="line-clamp-1 text-[15px] font-medium">{doc.title}</span>
-                            {c.lines.slice(0, 2).map((line, i) => (
+                            {c.lines.slice(0, 3).map((line, i) => (
                               <span key={i} className="line-clamp-3 text-[15px] leading-snug text-ink-soft">
                                 <mark>{line}</mark>
                               </span>
