@@ -4,7 +4,8 @@
 // between takes moves the crop with it. Waits for the local models are cut out: the clip
 // joins "tile appears" to "tile filed" with a short crossfade, and the video says so.
 import { execFileSync } from "node:child_process";
-import { readFileSync, existsSync, mkdirSync } from "node:fs";
+import { readFileSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
+const require_fs = { writeFileSync };
 
 const FFMPEG = "/opt/homebrew/bin/ffmpeg";
 const ROOT = new URL("../../", import.meta.url).pathname;
@@ -28,7 +29,7 @@ const union = (a, b) => {
   return { x, y, w: Math.max(a.x + a.w, b.x + b.w) - x, h: Math.max(a.y + a.h, b.y + b.h) - y };
 };
 
-/** Segments [{from, to}] of one take → one clip, crossfading 0.35 s between segments. */
+/** Segments [{from, to}] of one take → one clip, crossfading 0.35 s between segments. Returns seconds. */
 function cut(name, src, segs, rect, width) {
   const w = even(width), h = even((width * rect.h) / rect.w);
   const args = ["-v", "error", "-y"];
@@ -46,6 +47,7 @@ function cut(name, src, segs, rect, width) {
     "-pix_fmt", "yuv420p", "-movflags", "+faststart", `${OUT}${name}.mp4`);
   execFileSync(FFMPEG, args);
   console.log(`${name}.mp4  ${w}×${h}  ${acc.toFixed(2)} s`);
+  return { name, seconds: +acc.toFixed(3), cuts: segs.length - 1 };
 }
 
 /** Library region: the Coming up strip down to the bottom of the first two tiles. */
@@ -90,7 +92,25 @@ const jobs = {
     cut("drop-lib", src, [{ from: m.drop + 0.6, to: m.drop + 2.2 }, { from: m.idle - 0.2, to: m.idle + 2.8 }], libRect(m), 1560);
   },
 };
+const FULL = { x: 0, y: 0, w: 1536, h: 864 };
+// The 90-second backup: full-frame footage of the whole live-demo script.
+jobs.backup = () => {
+  const { writeFileSync } = require_fs;
+  const sc = load("schedule"), w = load("watch"), sn = load("snap"), f = load("find"), d = load("drop"), q = load("quiz");
+  const src = (b) => `${T}${b}-${take}.mp4`;
+  const out = [
+    cut("b1-library", src("schedule"), [{ from: 0.3, to: sc.drop }], FULL, 1920),
+    cut("b2-schedule", src("schedule"), [{ from: sc.drop, to: sc.drop + 2.2 }, { from: sc.idle - 0.4, to: sc.useit + 4.0 }], FULL, 1920),
+    cut("b3-watch", src("watch"), [{ from: w.drop - 0.3, to: w.drop + 3.4 }, { from: w.idle - 0.4, to: w.idle + 6.0 }], FULL, 1920),
+    cut("b4-snap", src("snap"), [{ from: sn.open - 0.3, to: sn.shutter + 2.4 }, { from: sn.idle - 0.4, to: sn.idle + 4.2 }], FULL, 1920),
+    cut("b5-find", src("find"), [{ from: f.type - 0.4, to: f.enter + 1.2 }, { from: f.answer - 0.4, to: f.open }, { from: f.open, to: f.open + 4.4 }], FULL, 1920),
+    cut("b6-drop", src("drop"), [{ from: d.drop - 0.3, to: d.drop + 2.4 }, { from: d.idle - 0.4, to: d.idle + 4.0 }], FULL, 1920),
+    cut("b7-quiz", src("quiz"), [{ from: q.questions - 0.4, to: q.pick + 4.4 }], FULL, 1920),
+  ];
+  writeFileSync(`${OUT}backup-manifest.json`, JSON.stringify(out, null, 2));
+};
+
 for (const [k, fn] of Object.entries(jobs)) {
-  if (only && only !== k) continue;
+  if (only ? only !== k : k === "backup") continue;
   try { fn(); } catch (e) { console.log(`skip ${k}: ${e.message}`); }
 }

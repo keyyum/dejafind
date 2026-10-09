@@ -61,6 +61,23 @@ if (beat === "watch") {
   await shot(cdp, out("-after.png"));
 }
 
+if (beat === "schedule") {
+  await goto(cdp, APP + "/", 3000);
+  const stop = await record();
+  await sleep(4000);
+  mark("drop");
+  copyFileSync(S + "timetable-bscs-2b.png", ROOT + "data/watch/timetable-bscs-2b.png");
+  const ms = await waitIdle();
+  mark("idle");
+  await sleep(2500);
+  await shot(cdp, out("-card.png"));
+  mark("useit");
+  await clickText(cdp, "button", "Use it");
+  await sleep(4000);
+  console.log("read", ms, await stop());
+  await shot(cdp, out("-after.png"));
+}
+
 if (beat === "snap") {
   await goto(cdp, APP + "/", 3000);
   const stop = await record();
