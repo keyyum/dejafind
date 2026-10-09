@@ -20,6 +20,15 @@ A Codex pane may run beside pane 4 to generate concept images; the assets worker
 
 One contract per pane from `~/.claude/skills/squad/templates/contract.md`, filled completely. Exclusive file ownership as above. The UI worker builds against `src/lib/mock.ts` until the API exists, then swaps. The core worker exposes the routes named in `docs/UI.md` under "Data the UI reads" with exactly those shapes; write `src/lib/api-types.ts` first and commit it so both sides compile against it. The orchestrator writes `api-types.ts` before launching panes.
 
+## Skills per pane (write these into each contract)
+
+- orchestrator: `squad` mechanics only; `code-review` low effort on each PR before merge.
+- core: none. Read `node_modules/next/dist/docs/` for route handlers and server modules.
+- ui: invoke `frontend-design` before the first layout; use `shadcn` to add components against the Base UI flavor already installed; use `dev-browser` to open http://localhost:3101 and look at every screen you build; run `web-design-guidelines` before your last commit.
+- assets: `ui-ux-pro-max:design` for the mark and OG image guidance, lightly; the brief in `docs/ASSETS.md` decides the look.
+- story: `hyperframes` as entry, then `hyperframes-core` and `media-use` for title cards and captions over the screen recording; iMovie is the fallback. Deck is plain HTML.
+- Nobody uses superpowers (disabled here), Pawi-local skills (absent here), or `deep-research`.
+
 ## Gates and merges
 
 Gates: `npm run lint`, `npm run typecheck`, `npm run build`. A worker pushes its branch and opens a PR when a step proves. The orchestrator reviews the diff, runs the gates in the main tree after merging locally, and pushes `main`. Merge order: core steps 1 to 5 first so the UI has data by 04:30. Never merge a diff that adds a cloud AI call or a dependency missing from README Disclosures.
