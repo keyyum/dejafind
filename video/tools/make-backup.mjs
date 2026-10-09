@@ -1,12 +1,13 @@
 // Writes video/hf/backup/index.html: the 90-second stage fallback, full-frame footage of the
 // live-demo script with one caption per step. Reads the clip lengths cut.mjs measured.
 //   node video/tools/make-backup.mjs
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 
 const HF = new URL("../hf/", import.meta.url).pathname;
+const A = new URL("../audio/", import.meta.url).pathname;
 const clips = JSON.parse(readFileSync(`${HF}assets/clips/backup-manifest.json`, "utf8"));
 const CAPS = {
-  "b1-library": ["The Library. Top right: <b>On this laptop · nothing sent.</b>"],
+  "b1-library": ["The Library. <b>On this laptop, nothing sent.</b>"],
   "b2-schedule": ["Screenshot the class schedule. <b>Use it</b>: six subjects."],
   "b3-watch": ["A GC screenshot lands, read and <b>filed under Biology</b>.", "<b>Oct 17</b> lifts into Coming up."],
   "b4-snap": ["Snap a whiteboard with the camera.", "It lands, <b>filed under Biology</b>."],
@@ -15,13 +16,24 @@ const CAPS = {
   "b-status": ["<b>0 requests out.</b> Three local models."],
   "b7-quiz": ["Quiz me on Biology: <b>graded</b>, with the source shown."],
 };
+const SAY = {
+  "b1-library": ["The Library. On this laptop, nothing sent."],
+  "b2-schedule": ["Screenshot the class schedule. Use it: six subjects."],
+  "b3-watch": ["A GC screenshot lands, read and filed under Biology.", "October 17 lifts into Coming up."],
+  "b4-snap": ["Snap a whiteboard with the camera.", "It lands, filed under Biology."],
+  "b5-find": ["Ask: when's my bio quiz?", "The answer cites the screenshot it came from.", "The Document view shows what it read."],
+  "b6-drop": ["Drop one more file. Still read on this laptop."],
+  "b-status": ["Zero requests out. Three local models."],
+  "b7-quiz": ["Quiz me on Biology: graded, with the source shown."],
+};
 const order = ["b1-library", "b2-schedule", "b3-watch", "b4-snap", "b5-find", "b6-drop", "b-status", "b7-quiz"];
 const byName = Object.fromEntries(clips.map((c) => [c.name, c]));
 byName["b-status"] = { name: "b-status", seconds: 5.5, cuts: 0, still: true };
 
 const XF = 0.3; // visual overlap between steps
 let t = 0;
-const media = [], caps = [], cutnotes = [];
+const media = [], caps = [], cutnotes = [], vo = [], sfx = [];
+const voDur = existsSync(`${A}vo-backup-durations.json`) ? JSON.parse(readFileSync(`${A}vo-backup-durations.json`, "utf8")) : {};
 for (const name of order) {
   const c = byName[name];
   const start = +t.toFixed(3);
@@ -33,9 +45,13 @@ for (const name of order) {
   const lines = CAPS[name];
   const per = c.seconds / lines.length;
   lines.forEach((html, i) => {
-    const cs = +(start + per * i + 0.15).toFixed(3);
-    caps.push({ id: `c-${name}-${i}`, start: cs, dur: +(per - 0.3).toFixed(3), html });
+    const cs = +(start + per * i + (i === 0 && start === 0 ? 0.15 : 0.35)).toFixed(3);
+    const id = `bk-${order.indexOf(name)}-${i}`;
+    const vd = voDur[id] ?? 0;
+    caps.push({ id: `c-${name}-${i}`, start: cs, dur: +Math.max(per - 0.5, vd + 0.25).toFixed(3), html });
+    if (vd) vo.push({ id, t: cs });
   });
+  sfx.push({ t: Math.max(0.02, start - 0.05), kind: ["whoosh1", "whoosh2", "whoosh3"][order.indexOf(name) % 3] });
   if (c.cuts > 0) cutnotes.push({ start: +(start + 0.4).toFixed(3) });
   t += c.seconds - XF;
 }
@@ -96,4 +112,8 @@ ${caps.map((c) => `      <div id="${c.id}" class="cap clip" data-start="${c.star
 `;
 mkdirSync(`${HF}backup`, { recursive: true });
 writeFileSync(`${HF}backup/index.html`, html);
+sfx.push({ t: endStart - 1.4, kind: "riser-tail" });
+writeFileSync(`${A}backup-cues.json`, JSON.stringify({ tag: "backup", total, endStart, vo, sfx }, null, 2));
+// the spoken lines, for tts_edge.py
+writeFileSync(`${A}backup-say.json`, JSON.stringify(order.flatMap((n, bi) => SAY[n].map((text, i) => ({ id: `bk-${bi}-${i}`, text }))), null, 2));
 console.log(`backup/index.html: ${total} s, ${order.length} steps`);

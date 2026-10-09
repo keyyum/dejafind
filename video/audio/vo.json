@@ -1,0 +1,31 @@
+[
+  { "beat": "hook", "phrases": [
+    { "cap": "You photograph everything.", "tts": "You photograph everything." },
+    { "cap": "Slides, whiteboards, the group chat.", "tts": "Slides, whiteboards, the group chat." },
+    { "cap": "And you <b>never open any of it</b> again.", "tts": "And you never open any of it again." } ] },
+  { "beat": "name", "phrases": [
+    { "cap": "DéjàFind.", "tts": "Day-zha-find." } ] },
+  { "beat": "gc", "phrases": [
+    { "cap": "Screenshot the GC. That’s all.", "tts": "Screenshot the G C. That's all." },
+    { "cap": "It reads it <b>on your laptop</b>,", "tts": "It reads it on your laptop," },
+    { "cap": "files it under <b>Biology</b>,", "tts": "files it under Biology," },
+    { "cap": "and puts <b>October 17</b> on your timeline.", "tts": "and puts October seventeenth on your timeline." } ] },
+  { "beat": "watch", "phrases": [
+    { "cap": "No upload. It <b>watches your folders.</b>", "tts": "No upload. It watches your folders." },
+    { "cap": "Slides, whiteboards, PDFs, <b>filed by subject.</b>", "tts": "Slides, whiteboards, P D Fs, filed by subject." } ] },
+  { "beat": "snap", "phrases": [
+    { "cap": "Snap a whiteboard.", "tts": "Snap a whiteboard." },
+    { "cap": "It lands, <b>filed under Biology.</b>", "tts": "It lands, filed under Biology." } ] },
+  { "beat": "find", "phrases": [
+    { "cap": "Ask <b>anything</b> you ever saw.", "tts": "Ask anything you ever saw." },
+    { "cap": "It answers, and <b>shows you where it came from.</b>", "tts": "It answers, and shows you where it came from." } ] },
+  { "beat": "offline", "phrases": [
+    { "cap": "Nothing leaves the laptop.", "tts": "Nothing leaves the laptop." },
+    { "cap": "Three small models, <b>zero requests out.</b>", "tts": "Three small models, zero requests out." },
+    { "cap": "<b>No internet needed.</b>", "tts": "No internet needed." } ] },
+  { "beat": "quiz", "phrases": [
+    { "cap": "And when the quiz is near,", "tts": "And when the quiz is near," },
+    { "cap": "it <b>quizzes you</b> from your own notes.", "tts": "it quizzes you from your own notes." } ] },
+  { "beat": "end", "phrases": [
+    { "cap": "DéjàFind. Find what you already saw.", "tts": "Day-zha-find. Find what you already saw." } ] }
+]

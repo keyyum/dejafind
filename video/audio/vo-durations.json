@@ -1,0 +1,122 @@
+[
+  {
+    "id": "0-0",
+    "beat": "hook",
+    "cap": "You photograph everything.",
+    "dur": 1.428
+  },
+  {
+    "id": "0-1",
+    "beat": "hook",
+    "cap": "Slides, whiteboards, the group chat.",
+    "dur": 2.339
+  },
+  {
+    "id": "0-2",
+    "beat": "hook",
+    "cap": "And you <b>never open any of it</b> again.",
+    "dur": 1.56
+  },
+  {
+    "id": "1-0",
+    "beat": "name",
+    "cap": "DéjàFind.",
+    "dur": 0.591
+  },
+  {
+    "id": "2-0",
+    "beat": "gc",
+    "cap": "Screenshot the GC. That’s all.",
+    "dur": 2.251
+  },
+  {
+    "id": "2-1",
+    "beat": "gc",
+    "cap": "It reads it <b>on your laptop</b>,",
+    "dur": 1.06
+  },
+  {
+    "id": "2-2",
+    "beat": "gc",
+    "cap": "files it under <b>Biology</b>,",
+    "dur": 1.202
+  },
+  {
+    "id": "2-3",
+    "beat": "gc",
+    "cap": "and puts <b>October 17</b> on your timeline.",
+    "dur": 2.398
+  },
+  {
+    "id": "3-0",
+    "beat": "watch",
+    "cap": "No upload. It <b>watches your folders.</b>",
+    "dur": 2.14
+  },
+  {
+    "id": "3-1",
+    "beat": "watch",
+    "cap": "Slides, whiteboards, PDFs, <b>filed by subject.</b>",
+    "dur": 3.188
+  },
+  {
+    "id": "4-0",
+    "beat": "snap",
+    "cap": "Snap a whiteboard.",
+    "dur": 0.821
+  },
+  {
+    "id": "4-1",
+    "beat": "snap",
+    "cap": "It lands, <b>filed under Biology.</b>",
+    "dur": 2.042
+  },
+  {
+    "id": "5-0",
+    "beat": "find",
+    "cap": "Ask <b>anything</b> you ever saw.",
+    "dur": 1.389
+  },
+  {
+    "id": "5-1",
+    "beat": "find",
+    "cap": "It answers, and <b>shows you where it came from.</b>",
+    "dur": 2.111
+  },
+  {
+    "id": "6-0",
+    "beat": "offline",
+    "cap": "Nothing leaves the laptop.",
+    "dur": 1.187
+  },
+  {
+    "id": "6-1",
+    "beat": "offline",
+    "cap": "Three small models, <b>zero requests out.</b>",
+    "dur": 2.442
+  },
+  {
+    "id": "6-2",
+    "beat": "offline",
+    "cap": "<b>No internet needed.</b>",
+    "dur": 0.815
+  },
+  {
+    "id": "7-0",
+    "beat": "quiz",
+    "cap": "And when the quiz is near,",
+    "dur": 1.34
+  },
+  {
+    "id": "7-1",
+    "beat": "quiz",
+    "cap": "it <b>quizzes you</b> from your own notes.",
+    "dur": 1.475
+  },
+  {
+    "id": "8-0",
+    "beat": "end",
+    "cap": "DéjàFind. Find what you already saw.",
+    "dur": 1.982
+  }
+]
