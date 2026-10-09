@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
 import type { SubjectsResponse } from "@/lib/api-types";
 import { cn } from "@/lib/utils";
 
@@ -23,6 +26,7 @@ export function SubjectFilters({
   reviewHref?: string | null;
   showSchedule?: boolean;
 }) {
+  const [showEmpty, setShowEmpty] = useState(false);
   const item = (filter: SubjectFilter, label: string, count?: number, faint?: boolean) => {
     const on = active === filter;
     return (
@@ -44,16 +48,33 @@ export function SubjectFilters({
       </Link>
     );
   };
+  // Subjects with nothing filed yet (from a timetable) wait behind a "+N" chip; the active one always shows.
+  const filled = subjects?.subjects.filter((s) => s.count > 0 || s.id === active) ?? [];
+  const empty = subjects?.subjects.filter((s) => s.count === 0 && s.id !== active) ?? [];
   return (
-    <nav aria-label="Subjects" className="flex flex-wrap items-baseline gap-x-6 gap-y-2 text-[17px]">
+    <nav aria-label="Subjects" className="flex items-baseline gap-x-6 text-[17px]">
+      <div className="flex min-w-0 flex-1 items-baseline gap-x-6 overflow-x-auto whitespace-nowrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       {item("all", "All")}
-      {subjects?.subjects.map((s) => item(s.id, s.name, s.count))}
+      {filled.map((s) => item(s.id, s.name, s.count))}
+      {showEmpty && empty.map((s) => item(s.id, s.name, s.count))}
       {subjects && subjects.otherCount > 0 && item("other", "Other", subjects.otherCount, true)}
       {showSchedule && item("schedule", "Schedule")}
+      {empty.length > 0 && (
+        <button
+          type="button"
+          onClick={() => setShowEmpty((v) => !v)}
+          aria-expanded={showEmpty}
+          aria-label={showEmpty ? "Hide subjects with no documents" : `Show ${empty.length} more subjects with no documents yet`}
+          className="shrink-0 self-center rounded-full border border-border px-2.5 py-0.5 text-[15px] text-muted-foreground outline-none hover:border-foreground/40 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          {showEmpty ? "Less" : `+${empty.length}`}
+        </button>
+      )}
+      </div>
       {reviewHref && (
         <Link
           href={reviewHref}
-          className="ml-auto rounded-sm text-ink-soft underline decoration-border decoration-2 underline-offset-[6px] outline-none hover:text-foreground hover:decoration-foreground focus-visible:ring-2 focus-visible:ring-ring"
+          className="ml-auto shrink-0 rounded-sm text-ink-soft underline decoration-border decoration-2 underline-offset-[6px] outline-none hover:text-foreground hover:decoration-foreground focus-visible:ring-2 focus-visible:ring-ring"
         >
           Reviewer
         </Link>
@@ -61,7 +82,7 @@ export function SubjectFilters({
       {flashcardsHref && (
         <Link
           href={flashcardsHref}
-          className={cn(!reviewHref && "ml-auto", "rounded-sm text-ink-soft underline decoration-border decoration-2 underline-offset-[6px] outline-none hover:text-foreground hover:decoration-foreground focus-visible:ring-2 focus-visible:ring-ring")}
+          className={cn(!reviewHref && "ml-auto", "shrink-0 rounded-sm text-ink-soft underline decoration-border decoration-2 underline-offset-[6px] outline-none hover:text-foreground hover:decoration-foreground focus-visible:ring-2 focus-visible:ring-ring")}
         >
           Flashcards
         </Link>
@@ -69,7 +90,7 @@ export function SubjectFilters({
       {quizHref && (
         <Link
           href={quizHref}
-          className={cn(!flashcardsHref && !reviewHref && "ml-auto", "rounded-sm text-ink-soft underline decoration-border decoration-2 underline-offset-[6px] outline-none hover:text-foreground hover:decoration-foreground focus-visible:ring-2 focus-visible:ring-ring")}
+          className={cn(!flashcardsHref && !reviewHref && "ml-auto", "shrink-0 rounded-sm text-ink-soft underline decoration-border decoration-2 underline-offset-[6px] outline-none hover:text-foreground hover:decoration-foreground focus-visible:ring-2 focus-visible:ring-ring")}
         >
           Quiz me
         </Link>
