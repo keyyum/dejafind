@@ -1,12 +1,7 @@
 import type { Metadata } from "next";
-import { Fraunces, Figtree, JetBrains_Mono } from "next/font/google";
+import { Figtree, JetBrains_Mono } from "next/font/google";
+import { AppShell } from "@/components/dejafind/app-shell";
 import "./globals.css";
-
-const fraunces = Fraunces({
-  variable: "--font-fraunces",
-  subsets: ["latin"],
-  axes: ["opsz", "SOFT"],
-});
 
 const figtree = Figtree({
   variable: "--font-figtree",
@@ -28,10 +23,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${fraunces.variable} ${figtree.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className={`${figtree.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-background text-foreground font-sans">
-        {children}
+      <body className="flex min-h-full flex-col bg-background font-sans text-[16px] text-foreground">
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   );
