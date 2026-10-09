@@ -7,15 +7,16 @@ is a real person's document — names, branches, and transaction numbers are
 all made up (`Juan Dela Cruz` is the standard placeholder name used on PH
 forms, not a real person).
 
-All four were verified against the real pipeline on this machine (`next
-build && next start`, `NEXT_PUBLIC_DEJAFIND_MOCK` unset, models already
-pulled: `qwen2.5vl:3b`, `qwen3:4b`, `nomic-embed-text`) by dropping them into
-`data/watch/` and reading the `documents`/`dates` tables directly. Expected
-results below are what was actually measured, not a guess — see **Measured
-run** under each file. Re-running will likely reorder read times (keep-alive
-keeps the models warm after the first file) and can shift wording slightly;
-treat subject/date as the stable part of the contract, not the exact title
-string.
+All four were verified against the real pipeline on this machine
+(`NEXT_PUBLIC_DEJAFIND_MOCK` unset, models already pulled: `qwen2.5vl:3b`,
+`qwen3:4b`, `nomic-embed-text`) by dropping them into `data/watch/` and
+reading the `documents`/`dates` tables directly, re-verified against
+`main`@`1a88f5e` (the perspective-warp commit) under both `next start` and
+`next dev`. Expected results below are what was actually measured, not a
+guess — see **Measured run** under each file. Re-running will likely reorder
+read times (keep-alive keeps the models warm after the first file) and can
+shift wording slightly; treat subject/date as the stable part of the
+contract, not the exact title string.
 
 ## `physics-lab-handout.pdf`
 
@@ -40,20 +41,36 @@ as JPEG so it's routed through the photo-cleanup path (`isPhoto()` only
 treats `.jpg`/`.jpeg`/`.heic` as photos; `.png` is left alone as a
 screenshot).
 
-**This is the file for the cleanup step.** Current cleanup
-(`src/server/clean.ts`) is the documented scoped-down fallback — `sharp()
-.trim().normalise()`, no perspective quad warp (cut for time, see the
-comment in that file). On this image the trim/normalise pass does visibly
-nothing: the tilt is still there in `data/derived/<id>-clean.jpg`. That's
-not a broken sample, it's the limitation the step was scoped around ("still
-flattens most phone photos ... shot close to square-on" — this one isn't
-square-on, by design, so it shows the gap honestly). Good to know before
-demoing this on stage: don't claim deskewing, just cropping/contrast.
+**This is the file for the cleanup step.** As of `main`@`1a88f5e`,
+`src/server/clean.ts` tries `src/server/quad.ts` (opencv-js edge detection +
+`warpPerspective`) first and falls back to `sharp().trim().normalise()` when
+no confident quad is found. On this image it always hits the fallback —
+`detectAndWarpQuad` throws before it gets anywhere near contour detection:
+
+```
+[clean] quad detection failed for <id>, falling back to trim
+TypeError: Method Promise.prototype.then called on incompatible receiver [object Module]
+    at async detectAndWarpQuad (src/server/quad.ts:37:14)
+```
+
+Reproduced on this machine under both `next start` and `next dev`, so it
+isn't a dev/prod bundling difference — `await getCv()` (the dynamic
+`import("@techstark/opencv-js")` wrapper) fails on its very first call,
+every time, for every photo, not just this one. The pipeline doesn't crash
+— it logs and falls back, same as the pre-warp behavior — but the warp
+itself has not actually run successfully on this machine. Flagged to the
+orchestrator; not something this worktree's ownership (`public/**`,
+`video/**`, `docs/brand-refs/**`, now `data/samples/**`) can fix.
+Until that's resolved, the fallback crop still does visibly nothing to this
+tilt (`data/derived/<id>-clean.jpg` looks identical to the source) — this
+sample is a good one to demo the gap honestly: don't claim deskewing on
+stage, just cropping/contrast, unless the quad fix lands and gets
+re-verified here first.
 
 - **Subject:** Biology
 - **Date:** none expected (a slide with phase names, no calendar date).
-- **Measured run:** done in 4.2 s warm (22 s cold). Title "Cell Division:
-  Mitosis".
+- **Measured run:** done in 4.2–15.3 s warm (22 s cold). Title "Cell
+  Division: Mitosis".
 
 ## `jollibee-receipt.jpg`
 
@@ -63,15 +80,15 @@ product doc's own example search query ("jollibee" is listed in
 `docs/PRODUCT.md` as a demo query). Per the product spec, non-academic
 files are indexed but get no subject and no timeline entry.
 
-- **Subject:** expected none/Other. **Measured variance:** one clean run
-  gave no subject (correct); a second clean run gave subject **"Economy"**
-  with the receipt date auto-filed to Coming Up. Same image, same prompt,
-  temperature 0 — the small vision model isn't reliably obeying "no subject
-  for non-academic docs" because that rule lives in the product spec, not
-  in a hard check in the pipeline. Mentioning this so whoever runs the demo
-  isn't surprised if "jollibee" shows up filed under something odd — it's a
-  model behavior, not a sample defect, and not something an asset tweak can
-  fix.
+- **Subject:** expected none/Other. **Measured variance:** across three
+  clean runs, got no subject once (correct), subject "Economy" once, and
+  subject "Economics" once — each time with the receipt date auto-filed to
+  Coming Up. Same image, same prompt, temperature 0 — the small vision model
+  isn't reliably obeying "no subject for non-academic docs" because that
+  rule lives in the product spec, not in a hard check in the pipeline.
+  Mentioning this so whoever runs the demo isn't surprised if "jollibee"
+  shows up filed under something odd — it's a model behavior, not a sample
+  defect, and not something an asset tweak can fix.
 - **Measured run:** done in 20.7–27.8 s depending on run.
 
 ## `sanaysay-wika-kultura.jpg`
@@ -99,7 +116,7 @@ date cross-check.
   both attempts. Cutting to one short left-aligned paragraph fixed it. If
   anyone adds more sanaysay-style samples later: keep vision-OCR'd prose
   short, long justified paragraphs are a known trigger for this model.
-- **Measured run:** done in 6.6 s warm (19.8 s cold).
+- **Measured run:** done in 6.6–23.6 s warm (19.8 s cold).
 
 ## Why these four
 
