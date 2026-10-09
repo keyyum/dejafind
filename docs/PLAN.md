@@ -52,3 +52,7 @@ Say out loud: the model names, their sizes, and the measured time per file on th
 ## Demo-day prep (Oct 10, 12:00 at Cyberzone SM Makati)
 
 Warm every model before stage. Grant camera and screen recording to the exact browser used. Host all model files locally and test with Wi-Fi off. Bring HDMI and USB-C. Print two Biology slides and one fake schedule. Keep canned sample files in `data/samples/`.
+
+## Measured baseline (Oct 10 2026, 00:42, Apple M4 16 GB, Ollama 0.40.2)
+
+`qwen2.5vl:3b` on `data/samples/gc-bio-quiz.png` with `format: json`, temperature 0: returned verbatim text, title "Biology Quiz Moved to October 17", subject Biology, date 2026-10-17. Total 20.0 s on a cold load, of which 5.1 s was generation. Expect roughly 5 to 8 s per image once the model is warm. Keep the model warm during the demo (`keep_alive`), and never cold-load on stage.

@@ -42,7 +42,8 @@ next-env.d.ts
 
 # dejafind: local data, never commit user files or indexes
 /data/
-!/data/samples/.gitkeep
+!/data/samples/
+!/data/samples/**
 *.sqlite
 *.sqlite-*
 *.db
