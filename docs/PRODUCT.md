@@ -29,7 +29,15 @@ Your screenshots, slide photos, and PDFs get understood, organized, and findable
 
 Not a notes app. Not a to-do list. Not a dashboard. Not a chatbot. The home screen is your documents, not a page about them.
 
-## Tier 2, only after the core four and the network panel are proven (target 05:00 to 06:30)
+## Also in, decided 02:15
+
+- **Snap.** A button in the app that captures from the webcam or the iPhone via Continuity Camera and drops the photo into the watch folder, so it flows through the normal pipeline. The stage move for slides.
+- **Drag and drop and bulk import.** Drop a file or a whole folder onto the window; a progress line shows the grid filling. The second way in, after the folder watcher.
+- **⌘K** focuses the search bar from anywhere.
+- **All five animations** in `docs/UI.md`: capture lands, date lifts off, highlights paint, quiz slides from source, Lens-style tap in the Document view.
+- **Paper tiles.** Photos are cropped to the document, straightened, and shown in their real shape with a soft shadow.
+
+## Tier 2, only after the core and the UI are proven (target 06:30 to 07:15)
 
 - **Reviewer sheet.** One prompt over a subject's captures; every line cites its source capture.
 - **Flashcards.** Term and definition pairs from captures, flip UI. No spaced repetition.
