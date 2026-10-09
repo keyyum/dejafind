@@ -26,5 +26,8 @@
       "Bash(curl https://api.openai.com/*)",
       "Bash(curl https://api.anthropic.com/*)"
     ]
+  },
+  "enabledPlugins": {
+    "superpowers@claude-plugins-official": false
   }
 }
