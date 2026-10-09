@@ -19,8 +19,8 @@ const stem = `${ROOT}video/audio/${tag}-vo-norm.wav`;
 const sd = err(["-i", stem, "-af", "silencedetect=n=-40dB:d=0.12", "-f", "null", "-"]);
 const onsets = [0, ...[...sd.matchAll(/silence_end: ([\d.]+)/g)].map((m) => +m[1])].filter((x, i) => i > 0 || !sd.includes("silence_start: 0"));
 const cues = JSON.parse(readFileSync(`${ROOT}video/audio/${tag === "demo" ? "cues" : tag + "-cues"}.json`, "utf8"));
-const html = readFileSync(`${ROOT}video/hf/${tag === "demo" ? "index.html" : "backup/index.html"}`, "utf8");
-const capStarts = [...html.matchAll(/class="cap clip" data-start="([\d.]+)"/g)].map((m) => +m[1]);
+const html = readFileSync(`${ROOT}video/hf/${tag === "demo" ? "index.html" : tag + "/index.html"}`, "utf8");
+const capStarts = [...html.matchAll(/class="(?:cap|sub2) clip" data-start="([\d.]+)"/g)].map((m) => +m[1]);
 console.log("## VO onset vs caption (ms)");
 let worst = 0;
 for (const c of cues.vo) {

@@ -15,8 +15,8 @@ mkdirSync(OUT, { recursive: true });
 const take = process.argv[2] ?? "1";
 const only = process.argv[3];
 
-const load = (beat) => {
-  const f = `${T}${beat}-${take}.marks.json`;
+const load = (beat, tk = take) => {
+  const f = `${T}${beat}-${tk}.marks.json`;
   if (!existsSync(f)) throw new Error(`missing ${f}`);
   return JSON.parse(readFileSync(f, "utf8"));
 };
@@ -99,6 +99,30 @@ const jobs = {
   },
 };
 const FULL = { x: 0, y: 0, w: 1536, h: 864 };
+// lvl2: "the night before" cut. Writes the real wait of each clip to lvl2-real.json for its label.
+jobs.lvl2 = () => {
+  const sc = load("schedule"), d = load("drop"), w = load("watch"), sn = load("snap");
+  const real = {};
+  cut("l2-sched", `${T}schedule-${take}.mp4`, [{ from: sc.idle - 0.3, to: sc.useit + 2.6 }], { x: 140, y: 186, w: 1256, h: 290 }, 1500);
+  real["l2-sched"] = +(sc.idle - sc.drop).toFixed(1);
+  const dm = d.rects.comingUp ? d : { ...d, rects: sn.rects };
+  cut("l2-mitosis", `${T}drop-${take}.mp4`, [{ from: d.drop + 0.5, to: d.drop + 1.6 }, { from: d.idle - 0.2, to: d.idle + 1.5 }], libRect(dm), 1250);
+  real["l2-mitosis"] = +(d.idle - d.drop).toFixed(1);
+  cut("l2-chip", `${T}watch-${take}.mp4`, [{ from: w.idle - 0.3, to: w.idle + 1.9 }], libRect(w), 1250);
+  real["l2-snap"] = +(sn.idle - sn.shutter).toFixed(1);
+  const rv = load("review", "3");
+  cut("l2-review", `${T}review-3.mp4`, [{ from: rv.ready - 0.3, to: rv.ready + 2.6 }], { x: 370, y: 95, w: 796, h: 605 }, 1100);
+  real["l2-review"] = +(rv.ready - rv.open).toFixed(1);
+  const a2 = load("ask2", "3"), i = a2.rects.input;
+  cut("l2-ask2-type", `${T}ask2-3.mp4`, [{ from: a2.type - 0.1, to: a2.enter + 0.4 }], { x: i.x - 71, y: i.y - 27, w: 928, h: 84 }, 1500);
+  cut("l2-ask2-answer", `${T}ask2-3.mp4`, [{ from: a2.answer - 0.2, to: a2.answer + 2.6 }], pad(a2.rects.answer, 18), 1600);
+  real["l2-ask2"] = +(a2.answer - a2.enter).toFixed(1);
+  const f = load("find");
+  real["l2-find"] = +(f.answer - f.enter).toFixed(1);
+  writeFileSync(`${ROOT}video/audio/lvl2-real.json`, JSON.stringify(real, null, 1));
+  console.log(real);
+};
+
 // v2: the tighter 55 s cut (no hold over ~2.5 s without motion).
 jobs.v2 = () => {
   const w = load("watch"), sn = load("snap"), f = load("find"), q = load("quiz");
@@ -128,6 +152,6 @@ jobs.backup = () => {
 };
 
 for (const [k, fn] of Object.entries(jobs)) {
-  if (only ? only !== k : k === "backup" || k === "v2") continue;
+  if (only ? only !== k : k === "backup" || k === "v2" || k === "lvl2") continue;
   try { fn(); } catch (e) { console.log(`skip ${k}: ${e.message}`); }
 }
