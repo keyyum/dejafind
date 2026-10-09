@@ -3,12 +3,14 @@
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeftIcon, Loader2Icon } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import type { DateFound, DocumentDetail, SearchResult, SubjectsResponse } from "@/lib/api-types";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { DateFound, DocumentDetail, SearchResult, SubjectsResponse, WordsResponse } from "@/lib/api-types";
+import { lineForWord, rowsOf, wordsForLine } from "@/lib/client/lens";
 import {
   deleteDocument,
   getDocument,
   getSimilar,
+  getWords,
   getSubjects,
   patchDate,
   patchDocument,
@@ -60,6 +62,11 @@ export function DocumentView() {
   const [subjects, setSubjects] = useState<SubjectsResponse | null>(null);
   const [similar, setSimilar] = useState<SearchResult[] | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  // Lens tap: word boxes from /words, the lit words on the image, the matching line of text.
+  const [words, setWords] = useState<WordsResponse | null>(null);
+  const [lit, setLit] = useState<ReadonlySet<number>>(new Set());
+  const [activeLine, setActiveLine] = useState<number | null>(null);
+  const lineRefs = useRef(new Map<number, HTMLElement>());
 
   const load = useCallback(() => {
     getDocument(id)
@@ -75,15 +82,48 @@ export function DocumentView() {
     void getSubjects().then(setSubjects).catch(() => {});
   }, [load]);
 
+  const done = doc?.status === "done";
+  useEffect(() => {
+    if (!done) return;
+    let live = true;
+    // 501 until word boxes exist; the Lens tap simply stays off.
+    getWords(id)
+      .then((w) => live && setWords(w.words.length ? w : null))
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, [id, done]);
+
+  useEffect(() => {
+    if (activeLine == null) return;
+    lineRefs.current.get(activeLine)?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, [activeLine]);
+
   useDejaEvent((e) => {
     if ((e.type === "document.filed" && e.document.id === id) || (e.type === "document.error" && e.documentId === id)) load();
     if (e.type === "document.deleted" && e.documentId === id) router.push("/");
   });
 
-  const spans = useMemo(() => {
-    if (!doc) return [];
-    return termSpans(doc.text, [...queryTerms(q), ...doc.dates.filter((d) => d.status !== "ignored").map((d) => d.span)]);
-  }, [doc, q]);
+  const terms = useMemo(
+    () => (doc ? [...queryTerms(q), ...doc.dates.filter((d) => d.status !== "ignored").map((d) => d.span)] : []),
+    [doc, q],
+  );
+  const spans = useMemo(() => (doc ? termSpans(doc.text, terms) : []), [doc, terms]);
+  const lines = useMemo(() => doc?.text.split("\n") ?? [], [doc]);
+  const rows = useMemo(() => (words ? rowsOf(words.words) : []), [words]);
+
+  const onWordTap = (index: number) => {
+    if (!words) return;
+    const { line, row } = lineForWord(index, words.words, rows, lines);
+    setLit(new Set(row));
+    setActiveLine(line >= 0 ? line : null);
+  };
+  const onLineTap = (li: number) => {
+    if (!words) return;
+    setActiveLine(li);
+    setLit(wordsForLine(lines[li], words.words, rows));
+  };
 
   if (missing) {
     return (
@@ -146,7 +186,16 @@ export function DocumentView() {
       <main id="main" className="mx-auto grid w-full max-w-[1320px] grid-cols-1 items-start gap-12 px-6 pt-10 pb-32 sm:px-12 lg:grid-cols-[minmax(0,1.25fr)_minmax(380px,1fr)]">
         <figure className="flex flex-col gap-3 lg:sticky lg:top-8">
           {imageSrc ? (
-            <Zoomable src={imageSrc} alt={doc.title} width={doc.width} height={doc.height} rounded={isScreenshot(doc)} />
+            <Zoomable
+              src={imageSrc}
+              alt={doc.title}
+              width={doc.width}
+              height={doc.height}
+              rounded={isScreenshot(doc)}
+              words={words}
+              lit={lit}
+              onWordTap={onWordTap}
+            />
           ) : (
             <Paper doc={doc} className="bg-muted df-sweep" />
           )}
@@ -242,12 +291,39 @@ export function DocumentView() {
 
           {doc.text && (
             <section aria-labelledby="text-heading" className="flex flex-col gap-3">
-              <h2 id="text-heading" className="text-[17px] font-medium text-muted-foreground">Text it read</h2>
+              <div className="flex items-baseline justify-between gap-4">
+                <h2 id="text-heading" className="text-[17px] font-medium text-muted-foreground">Text it read</h2>
+                {words && <span className="text-[15px] text-muted-foreground">Tap a word on the page or a line here</span>}
+              </div>
               <div
                 tabIndex={0}
                 className="df-paint max-h-[300px] overflow-auto rounded-xl border border-hairline bg-white px-5 py-4 text-[16px] leading-relaxed whitespace-pre-wrap text-ink-soft outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
-                <Highlight text={doc.text} spans={spans} />
+                {words ? (
+                  lines.map((line, li) =>
+                    line.trim() ? (
+                      <button
+                        key={li}
+                        type="button"
+                        ref={(el) => {
+                          if (el) lineRefs.current.set(li, el);
+                          else lineRefs.current.delete(li);
+                        }}
+                        onClick={() => onLineTap(li)}
+                        className={cn(
+                          "-mx-1.5 block w-[calc(100%+0.75rem)] rounded-md px-1.5 text-left transition-colors duration-200 outline-none hover:bg-black/[0.04] focus-visible:ring-2 focus-visible:ring-ring",
+                          activeLine === li && "bg-mark text-foreground hover:bg-mark",
+                        )}
+                      >
+                        <Highlight text={line} spans={termSpans(line, terms)} />
+                      </button>
+                    ) : (
+                      <span key={li} className="block h-[1.625em]" aria-hidden />
+                    ),
+                  )
+                ) : (
+                  <Highlight text={doc.text} spans={spans} />
+                )}
               </div>
               {doc.readMs != null && (
                 <p className="text-[15px] text-muted-foreground">Read on this laptop in {seconds(doc.readMs)}</p>
