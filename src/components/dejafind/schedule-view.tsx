@@ -163,7 +163,7 @@ function ComingUpList({ entries, onIgnore }: { entries: TimelineEntry[] | null; 
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3, ease: [0.2, 0, 0, 1], delay: Math.min(di, 10) * 0.03 }}
-              className="grid gap-x-8 gap-y-2 sm:grid-cols-[150px_1fr]"
+              className="grid grid-cols-[minmax(0,1fr)] gap-x-8 gap-y-2 sm:grid-cols-[150px_minmax(0,1fr)]"
             >
               <h3
                 className={cn(
@@ -173,7 +173,7 @@ function ComingUpList({ entries, onIgnore }: { entries: TimelineEntry[] | null; 
               >
                 {longDay(day.isoDate)}
               </h3>
-              <ul className="flex flex-col">
+              <ul className="flex min-w-0 flex-col">
                 <AnimatePresence initial={false}>
                   {day.entries.map((e) => (
                     <motion.li
