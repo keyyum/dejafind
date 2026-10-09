@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 56">
+  <g transform="translate(0,8) scale(0.625)">
+    <path fill-rule="evenodd" clip-rule="evenodd" fill="#1f1f1d" d="M18 8L36 8L44 22L50 14L50 52A4 4 0 0 1 46 56L18 56A4 4 0 0 1 14 52L14 12A4 4 0 0 1 18 8Z M23.5 36H40.5A2.5 2.5 0 0 1 43 38.5A2.5 2.5 0 0 1 40.5 41H23.5A2.5 2.5 0 0 1 21 38.5A2.5 2.5 0 0 1 23.5 36Z"/>
+  </g>
+  <text x="52" y="40" font-family="Figtree, sans-serif" font-weight="600" font-size="34" letter-spacing="-0.02em" fill="#1f1f1d">D&#233;j&#224;Find</text>
+</svg>
