@@ -124,7 +124,19 @@ export function getSubjects(): Promise<SubjectsResponse> {
 
 export function getTimeline(limit = 3): Promise<TimelineResponse> {
   if (USE_MOCK) return delay({ entries: mock.mockTimeline().entries.slice(0, limit) });
-  return request(`/api/timeline?limit=${limit}`);
+  const d = new Date();
+  const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  // Several captures of one announcement carry the same date; show it once.
+  return request<TimelineResponse>(`/api/timeline?from=${today}&limit=${limit * 4}`).then((r) => {
+    const seen = new Set<string>();
+    const entries = r.entries.filter((e) => {
+      const key = `${e.isoDate}|${e.label.trim().toLowerCase()}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    return { entries: entries.slice(0, limit) };
+  });
 }
 
 export function getSchedule(): Promise<ScheduleResponse> {
