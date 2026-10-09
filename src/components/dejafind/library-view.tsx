@@ -225,6 +225,8 @@ export function LibraryView() {
           active={filter}
           hrefFor={(f) => (f === "all" ? "/" : `/?subject=${encodeURIComponent(f)}`)}
           quizHref={quizHref}
+          flashcardsHref={quizHref?.replace("/quiz?", "/flashcards?")}
+          reviewHref={quizHref?.startsWith("/quiz?subject=") ? quizHref.replace("/quiz?", "/review?") : null}
         />
         <ComingUp entries={timeline} hidden={hiddenDates} />
         <ScheduleCard

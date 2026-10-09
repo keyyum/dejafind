@@ -31,6 +31,13 @@ export function ComingUp({ entries, hidden }: { entries: TimelineEntry[] | null;
           <span className="text-ink-soft group-hover:text-foreground">{e.label}</span>
         </Link>
       ))}
+      <a
+        href="/api/timeline.ics"
+        download="dejafind-coming-up.ics"
+        className="ml-auto rounded-sm text-ink-soft underline decoration-border decoration-2 underline-offset-[6px] outline-none hover:text-foreground hover:decoration-foreground focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        Add to calendar
+      </a>
     </section>
   );
 }
