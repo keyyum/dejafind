@@ -41,7 +41,7 @@ const comingUp = `[...document.querySelectorAll('*')].filter(e => e.children.len
 const firstTile = `document.querySelector('main a[href^="/d/"]')`;
 const toast = `document.querySelector('[data-sonner-toast]')`;
 const saveMarks = () => writeFileSync(out(".marks.json"), JSON.stringify(marks, null, 2));
-async function record() { const stop = await record(); rec0 = Date.now(); return async () => { const r = await stop(); saveMarks(); return r; }; }
+async function record() { const stop = await startRec(cdp, out(".mp4")); rec0 = Date.now(); return async () => { const r = await stop(); saveMarks(); return r; }; }
 
 if (beat === "watch") {
   await goto(cdp, APP + "/", 3000);
@@ -182,6 +182,8 @@ if (beat === "drop") {
   const ms = await waitIdle();
   mark("idle");
   await sleep(5000);
+  await grab("comingUp", comingUp);
+  await grab("firstTile", firstTile);
   console.log("read+settle", ms, await stop());
   await shot(cdp, out("-after.png"));
 }

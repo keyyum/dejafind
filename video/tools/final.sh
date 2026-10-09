@@ -28,7 +28,15 @@ idle() { # wait until the pipeline queue is empty
   echo "queue never drained" >&2; return 1
 }
 
-# 2. library before the demo starts (also warms the vision and text models)
+# 2. browser with the whiteboard as the fake camera
+pkill -f "user-data-dir=$PWD/$T/profile" || true
+sleep 1
+node video/tools/launch.mjs board
+
+# 3. the schedule goes first (as on stage): subjects then come from the confirmed timetable
+node video/tools/scene.mjs schedule "$TAKE"
+
+# 4. the rest of the library (also warms the vision and text models)
 for f in calc-limits-slide.png physics-kinematics-slide.png physics-lab-handout.pdf sanaysay-wika-kultura.jpg calc-longquiz-handout.jpg ${WITH_CALC_GC:+gc-calculus-longquiz-oct19.png}; do
   cp "$S/$f" data/watch/
   idle
@@ -36,13 +44,8 @@ for f in calc-limits-slide.png physics-kinematics-slide.png physics-lab-handout.
 done
 curl -s -X POST localhost:3103/api/search -H 'content-type: application/json' -d '{"q":"what is a limit"}' >/dev/null || true
 
-# 3. browser with the whiteboard as the fake camera
-pkill -f "user-data-dir=$PWD/$T/profile" || true
-sleep 1
-node video/tools/launch.mjs board
-
-# 4. beats, in demo-script order
-for beat in schedule watch snap find drop quiz status; do
+# 5. beats, in demo-script order
+for beat in watch snap find drop quiz status; do
   echo "== $beat"
   node video/tools/scene.mjs "$beat" "$TAKE"
 done

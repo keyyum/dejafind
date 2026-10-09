@@ -20,18 +20,6 @@ AppBuildersPH Hackathon 2026 entry. Theme: Local AI.
 |---|---|
 | ![Library: documents filed by subject, with the Coming up strip](docs/screenshots/library.png) | ![Document view: the screenshot beside exactly what was read, its subject, and its date](docs/screenshots/document-view.png) |
 
-## Measured on this machine
-
-<!-- story: numbers from /api/status after the final takes; fill before merge -->
-Apple M4 MacBook, 16 GB, one server under `next start`, models warm, nothing else using Ollama:
-
-- TBD s per document read (average over N documents, the app's own `avgReadMs`)
-- TBD s for a cited answer to "when's my bio quiz"
-- TBD s to write a five-question quiz for one subject
-- 0 outbound requests (the app's own counter)
-
-These are single-machine measurements, not a benchmark. Under load from other processes the same steps take several times longer.
-
 ## Why local AI
 
 A website cannot watch your folders; it has to ask you to upload. Only software running on your machine can organize files as they arrive. It works with no signal and no data, costs nothing per file, and your class photos and personal screenshots never leave the device.

@@ -17,7 +17,7 @@ const CAPS = {
 };
 const order = ["b1-library", "b2-schedule", "b3-watch", "b4-snap", "b5-find", "b6-drop", "b-status", "b7-quiz"];
 const byName = Object.fromEntries(clips.map((c) => [c.name, c]));
-byName["b-status"] = { name: "b-status", seconds: 4.0, cuts: 0, still: true };
+byName["b-status"] = { name: "b-status", seconds: 5.5, cuts: 0, still: true };
 
 const XF = 0.3; // visual overlap between steps
 let t = 0;
