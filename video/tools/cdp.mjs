@@ -6,7 +6,7 @@ import { join } from "node:path";
 
 export const CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 export const FFMPEG = "/opt/homebrew/bin/ffmpeg";
-export const PORT = 9333;
+export const PORT = 9431;
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 /** Launches headless Chrome with a fake camera fed from a y4m file. */
@@ -25,6 +25,7 @@ export function launchChrome({ camFile, profileDir }) {
     "--use-fake-ui-for-media-stream",
     "--use-fake-device-for-media-stream",
     "--hide-scrollbars",
+    "--force-device-scale-factor=2",
   ];
   if (camFile) args.push(`--use-file-for-fake-video-capture=${camFile}`);
   const proc = spawn(CHROME, [...args, "about:blank"], { stdio: "ignore", detached: true });
@@ -55,7 +56,8 @@ export async function connect() {
     if (msg.id && pending.has(msg.id)) {
       const { resolve, reject } = pending.get(msg.id);
       pending.delete(msg.id);
-      msg.error ? reject(new Error(JSON.stringify(msg.error))) : resolve(msg.result);
+      if (msg.error) reject(new Error(JSON.stringify(msg.error)));
+      else resolve(msg.result);
     } else if (msg.method) {
       for (const fn of listeners.get(msg.method) ?? []) fn(msg.params);
     }
