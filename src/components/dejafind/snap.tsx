@@ -2,7 +2,7 @@
 /* eslint-disable @next/next/no-img-element -- local thumbnails and in-memory captures */
 
 import Link from "next/link";
-import { Loader2Icon, XIcon } from "lucide-react";
+import { ChevronDownIcon, Loader2Icon, XIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { DocumentSummary } from "@/lib/api-types";
 import { getDocuments } from "@/lib/client/api";
@@ -55,10 +55,10 @@ const STRIP = 6;
 function Strip({ shots, recent, now, onOpen }: { shots: Shot[]; recent: DocumentSummary[] | null; now: number; onOpen: () => void }) {
   const shotIds = new Set(shots.map((s) => s.docId).filter(Boolean));
   const rest = (recent ?? []).filter((d) => !shotIds.has(d.id)).slice(0, Math.max(0, STRIP - shots.length));
-  const tile = "block aspect-[4/3] w-full overflow-hidden rounded-xl bg-white/10";
+  const tile = "block h-24 w-full overflow-hidden rounded-xl bg-white/10 sm:h-28";
   return (
-    <div className="flex flex-col gap-2.5">
-      <p className="text-[15px] text-white/60">{shots.length ? "Your photos, then what is already in" : "Already in DéjàFind"}</p>
+    <div className="flex flex-col gap-2">
+      <p className="text-[14px] text-white/60">{shots.length ? "Your photos, then what is already in" : "Already in DéjàFind"}</p>
       <ul className="grid grid-cols-3 gap-3 max-sm:[&>li:nth-child(n+4)]:hidden sm:grid-cols-6" aria-live="polite">
         {shots.slice(0, STRIP).map((s) => {
           const filed = s.doc && s.doc.status === "done";
@@ -68,7 +68,7 @@ function Strip({ shots, recent, now, onOpen }: { shots: Shot[]; recent: Document
               {filed && s.doc ? (
                 <Link href={`/d/${s.doc.id}`} onClick={onOpen} className="group block rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-white">
                   <span className={tile}>
-                    <img src={s.doc.thumbUrl ?? s.preview} alt={s.doc.title} className="size-full object-cover object-top" />
+                    <img src={s.doc.thumbUrl ?? s.preview} alt={s.doc.title} className="size-full object-contain" />
                   </span>
                   <span className="mt-1.5 block truncate text-[14px] text-white">{s.doc.title}</span>
                   <span className="block truncate text-[14px] text-emerald-300">filed under {s.doc.subjectName ?? "Other"}</span>
@@ -76,7 +76,7 @@ function Strip({ shots, recent, now, onOpen }: { shots: Shot[]; recent: Document
               ) : (
                 <div>
                   <span className={cn(tile, "df-sweep relative")}>
-                    <img src={s.preview} alt="" className="size-full object-cover opacity-60" />
+                    <img src={s.preview} alt="" className="size-full object-contain opacity-60" />
                     <span className="absolute inset-0 flex items-center justify-center">
                       <Loader2Icon className="size-6 animate-spin text-white" aria-hidden />
                     </span>
@@ -93,7 +93,7 @@ function Strip({ shots, recent, now, onOpen }: { shots: Shot[]; recent: Document
           <li key={d.id} className="min-w-0">
             <Link href={`/d/${d.id}`} onClick={onOpen} title={d.title} className="group block rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-white">
               <span className={tile}>
-                <img src={d.thumbUrl ?? undefined} alt={d.title} className="size-full object-cover object-top transition-opacity group-hover:opacity-80" />
+                <img src={d.thumbUrl ?? undefined} alt={d.title} className="size-full object-contain transition-opacity group-hover:opacity-80" />
               </span>
               <span className="mt-1.5 block truncate text-[14px] text-white/75">{d.title}</span>
             </Link>
@@ -230,9 +230,9 @@ function CaptureSheet({ onClose }: { onClose: () => void }) {
   }, []);
 
   return (
-    <div className="flex min-w-0 flex-col gap-4 bg-[#1f1f1d] p-4 text-white sm:gap-5 sm:p-5">
+    <div className="flex h-full min-h-0 min-w-0 flex-col bg-[#1f1f1d] text-white">
       {/* Chrome above the viewfinder: close left, title, camera right. Nothing sits on the picture. */}
-      <div className="flex items-center gap-3">
+      <div className="flex shrink-0 items-center gap-3 px-4 py-3 sm:px-5">
         <DialogClose
           aria-label="Close"
           className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-white/10 text-white outline-none hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white"
@@ -244,7 +244,7 @@ function CaptureSheet({ onClose }: { onClose: () => void }) {
           <DialogDescription className="truncate text-[15px] text-white/60">Hold it up to the camera. Space takes the photo.</DialogDescription>
         </div>
         {devices.length > 0 && (
-          <>
+          <div className="relative max-w-[44%] min-w-0 sm:max-w-[240px]">
             <label htmlFor="snap-device" className="sr-only">Camera</label>
             <select
               id="snap-device"
@@ -255,7 +255,7 @@ function CaptureSheet({ onClose }: { onClose: () => void }) {
                 setDeviceId(e.target.value);
                 saveDevice(e.target.value);
               }}
-              className="h-10 max-w-[44%] min-w-0 cursor-pointer truncate rounded-full border-0 bg-white/10 px-3.5 text-[14px] text-white outline-none hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white sm:max-w-[240px]"
+              className="h-10 w-full cursor-pointer appearance-none truncate rounded-full border-0 bg-white/10 pr-9 pl-3.5 text-[14px] text-white outline-none hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white"
             >
               {devices.map((d, i) => (
                 <option key={d.deviceId} value={d.deviceId} className="text-foreground">
@@ -263,11 +263,13 @@ function CaptureSheet({ onClose }: { onClose: () => void }) {
                 </option>
               ))}
             </select>
-          </>
+            <ChevronDownIcon aria-hidden className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-white/70" />
+          </div>
         )}
       </div>
 
-      <div className="relative aspect-[3/4] max-h-[calc(100dvh-480px)] min-h-[200px] w-full overflow-hidden rounded-[24px] bg-black sm:aspect-[16/10] sm:max-h-[calc(100dvh-470px)]">
+      {/* Borderless viewfinder: it takes every pixel between the header and the strip; the shutter sits on the picture. */}
+      <div className="relative min-h-[200px] min-w-0 flex-1 overflow-hidden bg-black">
         <video
           ref={video}
           autoPlay
@@ -286,22 +288,24 @@ function CaptureSheet({ onClose }: { onClose: () => void }) {
           aria-hidden
           className={cn("pointer-events-none absolute inset-0 bg-white transition-opacity", flash ? "opacity-90 duration-75" : "opacity-0 duration-300")}
         />
+        <div className="absolute inset-x-0 bottom-5 flex justify-center">
+          <button
+            type="button"
+            autoFocus
+            aria-label="Take photo"
+            disabled={!ready}
+            onClick={capture}
+            className="group flex size-[72px] items-center justify-center rounded-full border-4 border-white shadow-[0_4px_24px_rgb(0_0_0/0.5)] outline-none focus-visible:ring-4 focus-visible:ring-white/50 disabled:opacity-40"
+          >
+            <span className="size-[56px] rounded-full bg-white transition-transform duration-150 group-hover:scale-95 group-active:scale-90" />
+          </button>
+        </div>
       </div>
 
-      <div className="flex justify-center">
-        <button
-          type="button"
-          autoFocus
-          aria-label="Take photo"
-          disabled={!ready}
-          onClick={capture}
-          className="group flex size-[72px] items-center justify-center rounded-full border-4 border-white outline-none focus-visible:ring-4 focus-visible:ring-white/50 disabled:opacity-40"
-        >
-          <span className="size-[56px] rounded-full bg-white transition-transform duration-150 group-hover:scale-95 group-active:scale-90" />
-        </button>
+      {/* The strip is glued to the bottom edge; whole thumbnails, nothing cropped. */}
+      <div className="shrink-0 px-4 pt-3 pb-4 sm:px-5">
+        <Strip shots={shots} recent={recent} now={now} onOpen={onClose} />
       </div>
-
-      <Strip shots={shots} recent={recent} now={now} onOpen={onClose} />
     </div>
   );
 }
@@ -321,7 +325,7 @@ export function SnapButton() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent
           showCloseButton={false}
-          className="block max-h-[calc(100dvh-1rem)] w-full max-w-[calc(100vw-1rem)] gap-0 overflow-y-auto overscroll-contain rounded-[28px] bg-[#1f1f1d] p-0 shadow-[0_24px_80px_rgb(0_0_0/0.45)] ring-0 sm:max-w-[min(1040px,calc(100vw-4rem))]"
+          className="flex h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-none flex-col gap-0 overflow-hidden rounded-[28px] bg-[#1f1f1d] p-0 shadow-[0_24px_80px_rgb(0_0_0/0.45)] ring-0 sm:h-[calc(100dvh-2rem)] sm:w-[calc(100vw-2rem)] sm:max-w-none"
         >
           {open && <CaptureSheet onClose={() => setOpen(false)} />}
         </DialogContent>
