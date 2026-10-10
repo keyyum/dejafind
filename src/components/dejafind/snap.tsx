@@ -108,7 +108,7 @@ function Strip({ shots, recent, now, onOpen }: { shots: Shot[]; recent: Document
   );
 }
 
-function CaptureSheet({ onClose }: { onClose: () => void }) {
+function CaptureSheet({ onClose, expanded, setExpanded }: { onClose: () => void; expanded: boolean; setExpanded: (f: (x: boolean) => boolean) => void }) {
   const send = useImport();
   const video = useRef<HTMLVideoElement>(null);
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
@@ -117,8 +117,6 @@ function CaptureSheet({ onClose }: { onClose: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
   const [flash, setFlash] = useState(false);
-  // Messenger-style: click the picture and the camera takes the whole sheet; click again to come back.
-  const [expanded, setExpanded] = useState(false);
   const [shots, setShots] = useState<Shot[]>([]);
   const [recent, setRecent] = useState<DocumentSummary[] | null>(null);
   const now = useNow(1000);
@@ -232,12 +230,12 @@ function CaptureSheet({ onClose }: { onClose: () => void }) {
   }, []);
 
   return (
-    <div className="relative flex h-full min-h-0 min-w-0 flex-col bg-[#1f1f1d] text-white">
+    <div className={cn("relative flex min-h-0 min-w-0 flex-col bg-[#1f1f1d] text-white", expanded ? "h-full" : "gap-4 p-4 sm:gap-5 sm:p-5")}>
       {/* Chrome above the viewfinder: close left, title, camera right. Expanded, it floats over the picture. */}
       <div
         className={cn(
-          "flex shrink-0 items-center gap-3 px-4 py-3 sm:px-5",
-          expanded && "absolute inset-x-0 top-0 z-10 bg-gradient-to-b from-black/70 to-transparent pb-8",
+          "flex shrink-0 items-center gap-3",
+          expanded && "absolute inset-x-0 top-0 z-10 bg-gradient-to-b from-black/70 to-transparent px-4 pt-3 pb-8 sm:px-5",
         )}
       >
         <DialogClose
@@ -278,7 +276,14 @@ function CaptureSheet({ onClose }: { onClose: () => void }) {
       </div>
 
       {/* Borderless viewfinder: it takes every pixel between the header and the strip; the shutter sits on the picture. */}
-      <div className="relative min-h-[200px] min-w-0 flex-1 overflow-hidden bg-black">
+      <div
+        className={cn(
+          "relative min-h-[200px] min-w-0 overflow-hidden bg-black",
+          expanded
+            ? "flex-1"
+            : "aspect-[3/4] max-h-[calc(100dvh-480px)] w-full rounded-[24px] sm:aspect-[16/10] sm:max-h-[calc(100dvh-470px)]",
+        )}
+      >
         <video
           ref={video}
           autoPlay
@@ -302,6 +307,7 @@ function CaptureSheet({ onClose }: { onClose: () => void }) {
           aria-hidden
           className={cn("pointer-events-none absolute inset-0 bg-white transition-opacity", flash ? "opacity-90 duration-75" : "opacity-0 duration-300")}
         />
+        {expanded && (
         <div className="absolute inset-x-0 bottom-5 flex justify-center">
           <button
             type="button"
@@ -314,10 +320,26 @@ function CaptureSheet({ onClose }: { onClose: () => void }) {
             <span className="size-[56px] rounded-full bg-white transition-transform duration-150 group-hover:scale-95 group-active:scale-90" />
           </button>
         </div>
+        )}
       </div>
 
+      {!expanded && (
+        <div className="flex justify-center">
+          <button
+            type="button"
+            autoFocus
+            aria-label="Take photo"
+            disabled={!ready}
+            onClick={capture}
+            className="group flex size-[72px] items-center justify-center rounded-full border-4 border-white outline-none focus-visible:ring-4 focus-visible:ring-white/50 disabled:opacity-40"
+          >
+            <span className="size-[56px] rounded-full bg-white transition-transform duration-150 group-hover:scale-95 group-active:scale-90" />
+          </button>
+        </div>
+      )}
+
       {/* The strip is glued to the bottom edge; whole thumbnails, nothing cropped. */}
-      <div className={cn("shrink-0 px-4 pt-3 pb-4 sm:px-5", expanded && "hidden")}>
+      <div className={cn("shrink-0", expanded && "hidden")}>
         <Strip shots={shots} recent={recent} now={now} onOpen={onClose} />
       </div>
     </div>
@@ -327,6 +349,8 @@ function CaptureSheet({ onClose }: { onClose: () => void }) {
 /** "Snap": a capture sheet that only takes photos; each one is read and filed on this laptop. */
 export function SnapButton() {
   const [open, setOpen] = useState(false);
+  // Messenger-style: click the picture and the camera takes the whole window; click again to come back.
+  const [expanded, setExpanded] = useState(false);
   return (
     <>
       <button
@@ -336,12 +360,23 @@ export function SnapButton() {
       >
         Snap
       </button>
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog
+        open={open}
+        onOpenChange={(o) => {
+          setOpen(o);
+          if (!o) setExpanded(() => false);
+        }}
+      >
         <DialogContent
           showCloseButton={false}
-          className="flex h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-none flex-col gap-0 overflow-hidden rounded-[28px] bg-[#1f1f1d] p-0 shadow-[0_24px_80px_rgb(0_0_0/0.45)] ring-0 sm:h-[calc(100dvh-2rem)] sm:w-[calc(100vw-2rem)] sm:max-w-none"
+          className={cn(
+            "gap-0 rounded-[28px] bg-[#1f1f1d] p-0 shadow-[0_24px_80px_rgb(0_0_0/0.45)] ring-0",
+            expanded
+              ? "flex h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-none flex-col overflow-hidden sm:h-[calc(100dvh-2rem)] sm:w-[calc(100vw-2rem)] sm:max-w-none"
+              : "block max-h-[calc(100dvh-1rem)] w-full max-w-[calc(100vw-1rem)] overflow-y-auto overscroll-contain sm:max-w-[min(1040px,calc(100vw-4rem))]",
+          )}
         >
-          {open && <CaptureSheet onClose={() => setOpen(false)} />}
+          {open && <CaptureSheet onClose={() => setOpen(false)} expanded={expanded} setExpanded={setExpanded} />}
         </DialogContent>
       </Dialog>
     </>
