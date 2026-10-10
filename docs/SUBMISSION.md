@@ -62,11 +62,11 @@ https://github.com/keyyum/dejafind
 
 ## Video URL
 
-[VIDEO URL — paste the X or LinkedIn post URL after uploading `video/dejafind-demo.mp4`]
+Demo Video: the YouTube URL of `video/dejafind-demo.mp4` (unlisted is fine). X / LinkedIn Video URL: the post URL with the same video and the caption below.
 
 ## Team
 
-[TEAM — names exactly as on the official AppBuildersPH participant list]
+Edrian Tala, Harry Verdeflor, Flora Mae Openiano, Marc Lawrence David
 
 ## Post (X / LinkedIn)
 
