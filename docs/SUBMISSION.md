@@ -19,6 +19,12 @@ DéjàFind watches your Screenshots, Downloads and a drop folder. Every new scre
 
 There is no upload button and no account. Nothing leaves the laptop: the app shows a live counter of outbound requests, and it reads zero.
 
+## Why this product benefits from running AI locally
+
+A website cannot watch your folders; it has to ask you to upload. Only software on your machine can read and file captures as they arrive. It works with no signal and no data plan, costs nothing per file, and class photos, group chats and personal screenshots never leave the device. The app proves it with a live counter of outbound requests, which reads zero.
+
+**Runs locally:** everything in the product (watching, reading images and PDFs, filing, dates, search, answers, quiz, flashcards, reviewer). **Requires internet:** only the one-time `ollama pull` of the three models; nothing at runtime.
+
 ## How local AI is used
 
 Everything runs on one MacBook (Apple M4, 16 GB) through Ollama on localhost. There are no cloud AI calls anywhere in the code path, and the demo runs with Wi-Fi off.
@@ -72,7 +78,7 @@ Edrian Tala, Harry Verdeflor, Flora Mae Openiano, Marc Lawrence David
 
 Upload `video/dejafind-demo.mp4` natively from the founder's account, tag Cognition, and use this one line:
 
-> DéjàFind: your screenshots, slides and PDFs, understood and findable, fully offline on a laptop. Built in 24 h for #AppBuildersPH.
+> DéjàFind: your screenshots, slides and PDFs, understood and findable, fully offline on a laptop. Built in 24 h for #AppBuildersPH with @cognition (Devin).
 >
 > Music: Newer Wave by Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0 License. http://creativecommons.org/licenses/by/4.0/
 
