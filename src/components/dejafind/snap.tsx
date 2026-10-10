@@ -230,7 +230,7 @@ function CaptureSheet({ onClose, expanded, setExpanded }: { onClose: () => void;
   }, []);
 
   return (
-    <div className={cn("relative flex min-h-0 min-w-0 flex-col bg-[#1f1f1d] text-white", expanded ? "h-full" : "gap-4 p-4 sm:gap-5 sm:p-5")}>
+    <div className={cn("relative flex min-h-0 min-w-0 flex-col bg-[#1f1f1d] text-white", expanded ? "" : "gap-4 p-4 sm:gap-5 sm:p-5")}>
       {/* Chrome above the viewfinder: close left, title, camera right. Expanded, it floats over the picture. */}
       <div
         className={cn(
@@ -280,7 +280,7 @@ function CaptureSheet({ onClose, expanded, setExpanded }: { onClose: () => void;
         className={cn(
           "relative min-h-[200px] min-w-0 overflow-hidden bg-black",
           expanded
-            ? "flex-1"
+            ? "aspect-[3/4] max-h-[calc(100dvh-1rem)] w-full sm:aspect-[16/11]"
             : "aspect-[3/4] max-h-[calc(100dvh-480px)] w-full rounded-[24px] sm:aspect-[16/10] sm:max-h-[calc(100dvh-470px)]",
         )}
       >
@@ -370,10 +370,8 @@ export function SnapButton() {
         <DialogContent
           showCloseButton={false}
           className={cn(
-            "gap-0 rounded-[28px] bg-[#1f1f1d] p-0 shadow-[0_24px_80px_rgb(0_0_0/0.45)] ring-0",
-            expanded
-              ? "flex h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-none flex-col overflow-hidden sm:h-[calc(100dvh-2rem)] sm:w-[calc(100vw-2rem)] sm:max-w-none"
-              : "block max-h-[calc(100dvh-1rem)] w-full max-w-[calc(100vw-1rem)] overflow-y-auto overscroll-contain sm:max-w-[min(1040px,calc(100vw-4rem))]",
+            "block max-h-[calc(100dvh-1rem)] w-full max-w-[calc(100vw-1rem)] gap-0 overscroll-contain rounded-[28px] bg-[#1f1f1d] p-0 shadow-[0_24px_80px_rgb(0_0_0/0.45)] ring-0 sm:max-w-[min(1040px,calc(100vw-4rem))]",
+            expanded ? "overflow-hidden" : "overflow-y-auto",
           )}
         >
           {open && <CaptureSheet onClose={() => setOpen(false)} expanded={expanded} setExpanded={setExpanded} />}
