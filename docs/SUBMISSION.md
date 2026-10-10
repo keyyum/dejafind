@@ -78,7 +78,7 @@ Edrian Tala, Harry Verdeflor, Flora Mae Openiano, Marc Lawrence David
 
 Upload `video/dejafind-demo.mp4` natively from the founder's account, tag Cognition, and use this one line:
 
-> DéjàFind: your screenshots, slides and PDFs, understood and findable, fully offline on a laptop. Built in 24 h for #AppBuildersPH with @cognition (Devin).
+> DéjàFind: your screenshots, slides and PDFs, understood and findable, fully offline on a laptop. Built in 24 h for #AppBuildersPH. Thank you @cognition (Devin) and the sponsors.
 >
 > Music: Newer Wave by Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0 License. http://creativecommons.org/licenses/by/4.0/
 
