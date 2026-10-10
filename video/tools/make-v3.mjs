@@ -20,7 +20,7 @@ const END = +(S.close + 3.0).toFixed(3), TOTAL = +(END + 3.2).toFixed(2);
 
 const VO = { "v2-0": 0.55, "v2-1": 2.25, "v2-2": S.turn + 0.3, "v2-3": S.search + 0.5, "v2-4": S.search + 4.4,
   "v3-a": S.p1 + 0.15, "v2-5": S.p2 + 0.15, "v2-7": S.p3 + 1.75, "v2-9": S.p4 + 0.15, "v2-11": S.p5 + 0.2, "v2-12": S.p5 + 2.75, "v2-13": S.close + 0.35 };
-const ON_SCREEN = new Set(["v2-13"]);
+const ON_SCREEN = new Set(["v2-0", "v2-1", "v2-2", "v2-13"]);
 const subs = Object.entries(VO).filter(([id]) => !ON_SCREEN.has(id)).map(([id, t]) => ({ id, t, end: +(t + dur[id] + 0.15).toFixed(3), text: say[id] }));
 for (let i = 0; i + 1 < subs.length; i++) if (subs[i].end > subs[i + 1].t - 0.05) subs[i].end = subs[i + 1].t - 0.05;
 
@@ -32,6 +32,7 @@ const KIN = [
   { id: "k4", at: S.p5 - 1.45, words: ["Quiz", "yourself."], key: [1] },
   { id: "k5", at: S.close - 1.55, words: ["Zero", "requests", "out."], key: [0] },
 ];
+for (const x of subs) for (const k of KIN) if (x.t < k.at + 1.5 && x.end > k.at) x.end = Math.max(x.t + 0.4, +(k.at - 0.05).toFixed(3));
 const kin = KIN.map((k) => `<div id="${k.id}" class="kin">${k.words.map((w, j) => `<span class="${k.key.includes(j) ? "accent" : ""}">${w}</span>`).join(" ")}</div>`).join("\n      ");
 
 const PH = ["bio-mitosis-slide", "whiteboard-photosynthesis", "calc-limits-slide", "sanaysay-wika-kultura", "physics-kinematics-slide",
@@ -58,7 +59,7 @@ const html = `<!doctype html>
       .abs { position: absolute; }
       /* the app window */
       .camera { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; }
-      .app { position: absolute; left: 160px; top: 54px; width: 1600px; height: 900px; border-radius: 24px; background: var(--page); overflow: hidden; opacity: 0;
+      .app { position: absolute; left: 160px; top: 40px; width: 1600px; height: 840px; border-radius: 24px; background: var(--page); overflow: hidden; opacity: 0;
         box-shadow: 0 1px 2px rgba(31,31,29,.05), 0 14px 30px rgba(31,31,29,.06), 0 50px 110px rgba(31,31,29,.14); }
       .hdr { position: absolute; left: 60px; right: 60px; top: 30px; height: 40px; display: flex; align-items: center; gap: 36px; font-size: 21px; }
       .hdr .logo { display: flex; align-items: center; gap: 12px; font-weight: 600; font-size: 27px; letter-spacing: -0.02em; }
@@ -104,7 +105,7 @@ const html = `<!doctype html>
       .schedcard .h { position: absolute; left: 270px; top: 40px; font-size: 30px; } .schedcard .p { position: absolute; left: 270px; top: 92px; font-size: 20px; color: #7a7a74; width: 820px; }
       .btn { position: absolute; top: 56px; height: 58px; border-radius: 999px; font-size: 21px; display: flex; align-items: center; justify-content: center; }
       .btn.dark { left: 1140px; width: 140px; background: var(--ink); color: #fcfcfa; } .btn.ghost { left: 1300px; width: 150px; border: 1.5px solid var(--hairline); }
-      .sheet { position: absolute; left: 200px; top: 90px; width: 1200px; height: 780px; border-radius: 30px; background: #121211; opacity: 0; box-shadow: 0 40px 100px rgba(0,0,0,.35); }
+      .sheet { position: absolute; left: 200px; top: 64px; width: 1200px; height: 760px; border-radius: 30px; background: #121211; opacity: 0; box-shadow: 0 40px 100px rgba(0,0,0,.35); }
       .sheet .st { position: absolute; left: 36px; top: 26px; color: #fcfcfa; font-size: 24px; font-weight: 600; } .sheet .ss { position: absolute; left: 36px; top: 60px; color: #b9b9b2; font-size: 18px; }
       .vf { position: absolute; left: 36px; top: 104px; width: 1128px; height: 540px; border-radius: 22px; overflow: hidden; }
       .vf img { position: absolute; left: -30px; top: -10px; width: 1190px; height: 580px; object-fit: cover; object-position: center 20%; }
@@ -129,7 +130,7 @@ const html = `<!doctype html>
       .note2 { font-size: 16px; color: #7a7a74; margin-top: 10px; opacity: 0; }
       .honest { position: absolute; left: 170px; top: 20px; font-size: 19px; color: #6b6b65; opacity: 0; white-space: nowrap; }
       .speed { position: absolute; font-size: 18px; color: #5f5f59; background: rgba(255,255,255,.95); border-radius: 999px; padding: 6px 14px; border: 1px solid var(--hairline); opacity: 0; white-space: nowrap; }
-      .kin { position: absolute; left: 230px; bottom: 156px; font-size: 84px; font-weight: 600; letter-spacing: -0.02em; white-space: nowrap; padding: 6px 26px 14px; border-radius: 22px;
+      .kin { position: absolute; left: 160px; bottom: 34px; font-size: 84px; font-weight: 600; letter-spacing: -0.02em; white-space: nowrap; padding: 6px 26px 14px; border-radius: 22px;
         background: rgba(252,252,250,.95); box-shadow: 0 12px 40px rgba(31,31,29,.12); opacity: 0; }
       .kin span { display: inline-block; opacity: 0; }
       .sub2 { position: absolute; left: 0; right: 0; bottom: 40px; display: flex; justify-content: center; pointer-events: none; }
@@ -164,7 +165,7 @@ const html = `<!doctype html>
     <div id="root" data-composition-id="v3" data-start="0" data-duration="${TOTAL}" data-width="1920" data-height="1080">
       <div class="bg"></div>
 
-      <div id="pile" class="pile">${Array.from({ length: 26 }, (_, i) => `<div style="background-image:url('../assets/photos/${PH[(i * 3) % PH.length]}.jpg')"></div>`).join("")}</div>
+      <div id="pile" class="pile">${Array.from({ length: 28 }, (_, i) => `<div style="background-image:url('../assets/photos/${PH[(i * 3) % PH.length]}.jpg')"></div>`).join("")}</div>
       <div id="phone" class="phone"><div class="screen">
         <div class="bar">BSCS 2-A</div><div class="bubble">Who has the slides from Tuesday?</div><div class="bubble me">sent na po</div><div class="bubble">ty!!</div>
         <div id="notif" class="notif"><b>Ma'am Reyes · BSCS 2-A</b>our Biology quiz is MOVED to October 17</div>
@@ -287,7 +288,7 @@ ${subs.map((x, i) => `      <div id="s${i}" class="sub2 clip" data-start="${x.t.
       const KIN = ${JSON.stringify(KIN.map((k) => ({ id: k.id, at: k.at })))};
       const tl = gsap.timeline({ paused: true });
       const E = "power3.out";
-      const AX = 160, AY = 54; // app origin in root coords
+      const AX = 160, AY = 40; // app origin in root coords
       function chars(el) { const out = []; const walk = (n) => { for (const c of [...n.childNodes]) { if (c.nodeType === 3) { const f = document.createDocumentFragment();
         for (const ch of c.textContent) { const s = document.createElement("span"); s.className = "ch"; s.textContent = ch; f.appendChild(s); out.push(s); } c.replaceWith(f); } else walk(c); } }; walk(el); return out; }
       function words(el) { const out = []; const walk = (n) => { for (const c of [...n.childNodes]) { if (c.nodeType === 3) { const f = document.createDocumentFragment();
@@ -313,9 +314,17 @@ ${subs.map((x, i) => `      <div id="s${i}" class="sub2 clip" data-start="${x.t.
       tl.to("#pflash", { opacity: 0.9, duration: 0.04 }, 1.3); tl.to("#pflash", { opacity: 0, duration: 0.18 }, 1.36);
       tl.fromTo("#thumb", { opacity: 0, scale: 1.6, x: 80, y: -200 }, { opacity: 1, scale: 1, x: 0, y: 0, duration: 0.35, ease: E }, 1.38);
       let seed = 5; const r = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
-      [...document.querySelectorAll("#pile div")].forEach((p, i) => { const ang = r() * Math.PI * 2, rad = 120 + r() * 560;
-        tl.set(p, { left: 835 + Math.cos(ang) * rad * 1.5, top: 400 + Math.sin(ang) * rad * 0.7 }, 0);
-        tl.fromTo(p, { opacity: 0, scale: 1.4, rotation: (r() - 0.5) * 40, y: -60 }, { opacity: 1, scale: 1, rotation: (r() - 0.5) * 24, y: 0, duration: 0.3, ease: "back.out(1.3)" }, 1.7 + i * 0.045); });
+      // symmetric burial: ring A (10) and ring B (14) evenly around the phone, then 4 over it; left/right alternate
+      const spots = [];
+      for (let k = 0; k < 10; k++) { const a = (k / 10) * Math.PI * 2 + 0.31; spots.push([960 + Math.cos(a) * 430, 490 + Math.sin(a) * 270]); }
+      for (let k = 0; k < 14; k++) { const a = (k / 14) * Math.PI * 2; spots.push([960 + Math.cos(a) * 760, 490 + Math.sin(a) * 420]); }
+      spots.push([860, 380], [1060, 420], [880, 600], [1050, 580]);
+      const order = spots.map((p, i) => i).sort((a, b) => (Math.hypot(spots[b][0] - 960, (spots[b][1] - 490) * 1.6) - Math.hypot(spots[a][0] - 960, (spots[a][1] - 490) * 1.6)));
+      [...document.querySelectorAll("#pile div")].forEach((p, i) => {
+        const [x, y] = spots[order[i]];
+        tl.set(p, { left: x - 125 + (r() - 0.5) * 30, top: y - 90 + (r() - 0.5) * 24 }, 0);
+        tl.fromTo(p, { opacity: 0, scale: 1.4, rotation: (r() - 0.5) * 36, y: -50 }, { opacity: 1, scale: 1, rotation: (r() - 0.5) * 20, y: 0, duration: 0.3, ease: "back.out(1.3)" }, 1.65 + i * 0.042);
+      });
       tl.to("#phone", { scale: 0.94, duration: 2.2, ease: "none" }, 1.7);
       tl.to("#tagband", { opacity: 1, duration: 0.3 }, 2.3);
       tl.fromTo("#tagbig", { opacity: 0, y: 30, scale: 0.96 }, { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: E }, 2.35);
@@ -392,7 +401,7 @@ ${subs.map((x, i) => `      <div id="s${i}" class="sub2 clip" data-start="${x.t.
       tl.fromTo("#vf", { x: -3, y: 2 }, { x: 3, y: -2, duration: 0.3, yoyo: true, repeat: 4, ease: "sine.inOut" }, n0 + 0.1);
       tl.fromTo("#focus", { opacity: 0, scale: 1.4 }, { opacity: 1, scale: 1, duration: 0.25, ease: E }, n0 + 0.5);
       tl.to("#focus", { opacity: 0, duration: 0.2 }, n0 + 1.1);
-      cur([[n0 + 0.35, 1250, 760], [n0 + 1.2, AX + 800, AY + 794]]); click(n0 + 1.3);
+      cur([[n0 + 0.35, 1250, 760], [n0 + 1.2, AX + 800, AY + 768]]); click(n0 + 1.3);
       tl.to("#shutter", { scale: 0.85, duration: 0.06, yoyo: true, repeat: 1 }, n0 + 1.3);
       tl.to("#flash", { opacity: 1, duration: 0.02 }, n0 + 1.33); tl.to("#flash", { opacity: 0, duration: 0.1 }, n0 + 1.45);
       tl.to("#vf", { x: -240, y: 110, scale: 0.3, duration: 0.45, ease: "power3.in" }, n0 + 1.55);
@@ -419,7 +428,6 @@ ${subs.map((x, i) => `      <div id="s${i}" class="sub2 clip" data-start="${x.t.
       tl.fromTo("#ok", { opacity: 0, scale: 0.96 }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2)" }, z0 + 2.55);
       tl.fromTo("#verdict", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.35, ease: E }, z0 + 2.75);
       tl.fromTo("#qsrc", { scale: 0.8 }, { scale: 1, duration: 0.35, ease: "back.out(2)" }, z0 + 2.9);
-      tl.fromTo(".quiz", { scale: 1, transformOrigin: "50% 70%" }, { scale: 1.06, duration: 1.6, ease: "none", immediateRender: false }, z0 + 2.7);
       curOff(S.p5 - 0.3);
 
       // ---- 6 · STATUS ----
@@ -442,18 +450,18 @@ ${subs.map((x, i) => `      <div id="s${i}" class="sub2 clip" data-start="${x.t.
       // 1 Ask: bar at 1.8, answer at 1.3, date + citation at 1.5
       cam(s0 + 0.45, 740, 191, 1.8, 0.65);
       cam(typedEnd + 0.1, 960, 330, 1.3, 0.6);
-      cam(ansEnd - 0.35, 980, 370, 1.35, 0.6);
+      cam(ansEnd - 0.35, 960, 365, 1.3, 0.6);
       pull(S.p1 - 2.2);
       // 2 Library: tile at 1.7, follow the chip to Coming up, pull back
       cam(l0 + 0.6, 390, 420, 1.7, 0.6);
-      cam(l0 + 3.15, 720, 230, 1.7, 0.7);
+      cam(l0 + 3.15, 765, 215, 1.7, 0.7);
       pull(l0 + 4.1);
       // 3 Schedule: card and Use it at 1.6, pull back as the filters pop
-      cam(c0 + 0.45, 1150, 330, 1.6, 0.6);
+      cam(c0 + 0.45, 960, 315, 1.28, 0.6);
       pull(c0 + 1.45);
       // 4 Snap: shutter at 1.4, then the reading tile, pull back as it lands
       cam(n0 + 0.6, 960, 700, 1.4, 0.6);
-      cam(n0 + 1.75, 390, 400, 1.6, 0.6);
+      cam(n0 + 1.75, 375, 390, 1.6, 0.6);
       pull(n0 + 3.6);
       // 5 Quiz: options at 1.6, pan down for Correct + source, pull back
       cam(z0 + 0.8, 960, 470, 1.6, 0.6);
@@ -462,7 +470,7 @@ ${subs.map((x, i) => `      <div id="s${i}" class="sub2 clip" data-start="${x.t.
       // 6 Status: the 0 at 1.8, pan to the models, pull back
       cam(t0 + 0.95, 1380, 220, 1.8, 0.6);
       cam(t0 + 1.6, 1430, 330, 1.8, 0.6);
-      pull(t0 + 2.6);
+      pull(t0 + 2.15);
 
       tl.fromTo("#honest", { opacity: 0 }, { opacity: 1, duration: 0.3 }, S.p1); tl.to("#honest", { opacity: 0, duration: 0.3 }, S.p2 + 1.5);
 
