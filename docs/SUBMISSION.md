@@ -79,7 +79,7 @@ Upload `video/dejafind-demo.mp4` natively from the founder's account, tag Cognit
 ## Video credits
 
 - **Footage:** the real DéjàFind app on this laptop, recorded with headless Chrome; all documents are synthetic samples. Model waits are cut for time and each cut is labelled on screen.
-- **v3 cut (`video/dejafind-demo-v3.mp4`):** the interface is re-created from the real app as animated components; the outputs and timings shown come from a real run on this laptop. The backup (`video/dejafind-backup.mp4`) is a raw screen recording.
+- **Demo video (`video/dejafind-demo.mp4`):** the interface is re-created from the real app as animated components; the outputs and timings shown come from a real run on this laptop. The backup (`video/dejafind-backup.mp4`) is a raw screen recording.
 - **Edit:** HyperFrames (HeyGen), with GSAP 3.
 - **Voice:** edge-tts, Microsoft neural voice en-US-AndrewMultilingualNeural at +4%. This is an online text-to-speech service, used only to narrate the promo video; the DéjàFind app itself makes no network calls.
 - **Music:** "Newer Wave" by Kevin MacLeod (incompetech.com), CC BY 4.0. Attribution line is in the post text above.
