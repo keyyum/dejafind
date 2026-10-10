@@ -117,6 +117,8 @@ function CaptureSheet({ onClose }: { onClose: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
   const [flash, setFlash] = useState(false);
+  // Messenger-style: click the picture and the camera takes the whole sheet; click again to come back.
+  const [expanded, setExpanded] = useState(false);
   const [shots, setShots] = useState<Shot[]>([]);
   const [recent, setRecent] = useState<DocumentSummary[] | null>(null);
   const now = useNow(1000);
@@ -230,9 +232,14 @@ function CaptureSheet({ onClose }: { onClose: () => void }) {
   }, []);
 
   return (
-    <div className="flex h-full min-h-0 min-w-0 flex-col bg-[#1f1f1d] text-white">
-      {/* Chrome above the viewfinder: close left, title, camera right. Nothing sits on the picture. */}
-      <div className="flex shrink-0 items-center gap-3 px-4 py-3 sm:px-5">
+    <div className="relative flex h-full min-h-0 min-w-0 flex-col bg-[#1f1f1d] text-white">
+      {/* Chrome above the viewfinder: close left, title, camera right. Expanded, it floats over the picture. */}
+      <div
+        className={cn(
+          "flex shrink-0 items-center gap-3 px-4 py-3 sm:px-5",
+          expanded && "absolute inset-x-0 top-0 z-10 bg-gradient-to-b from-black/70 to-transparent pb-8",
+        )}
+      >
         <DialogClose
           aria-label="Close"
           className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-white/10 text-white outline-none hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white"
@@ -241,7 +248,9 @@ function CaptureSheet({ onClose }: { onClose: () => void }) {
         </DialogClose>
         <div className="flex min-w-0 flex-1 flex-col">
           <DialogTitle className="text-[17px] font-semibold text-white">Snap a page</DialogTitle>
-          <DialogDescription className="truncate text-[15px] text-white/60">Hold it up to the camera. Space takes the photo.</DialogDescription>
+          <DialogDescription className="truncate text-[15px] text-white/60">
+            {expanded ? "Space takes the photo. Click the picture to come back." : "Hold it up to the camera. Space takes the photo. Click the picture to go full screen."}
+          </DialogDescription>
         </div>
         {devices.length > 0 && (
           <div className="relative max-w-[44%] min-w-0 sm:max-w-[240px]">
@@ -276,7 +285,12 @@ function CaptureSheet({ onClose }: { onClose: () => void }) {
           playsInline
           muted
           onLoadedData={() => setReady(true)}
-          className={cn("size-full object-cover transition-opacity duration-300", ready ? "opacity-100" : "opacity-0")}
+          onClick={() => setExpanded((x) => !x)}
+          className={cn(
+            "size-full object-cover transition-opacity duration-300",
+            expanded ? "cursor-zoom-out" : "cursor-zoom-in",
+            ready ? "opacity-100" : "opacity-0",
+          )}
         />
         {error && <p className="absolute inset-0 flex items-center justify-center p-10 text-center text-[17px] text-white/80">{error}</p>}
         {!ready && !error && (
@@ -303,7 +317,7 @@ function CaptureSheet({ onClose }: { onClose: () => void }) {
       </div>
 
       {/* The strip is glued to the bottom edge; whole thumbnails, nothing cropped. */}
-      <div className="shrink-0 px-4 pt-3 pb-4 sm:px-5">
+      <div className={cn("shrink-0 px-4 pt-3 pb-4 sm:px-5", expanded && "hidden")}>
         <Strip shots={shots} recent={recent} now={now} onOpen={onClose} />
       </div>
     </div>
